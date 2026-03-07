@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+-e 
+Sitemap: https://san7o.github.io/micro-website/sitemap.txt

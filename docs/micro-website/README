@@ -1,0 +1,37 @@
+micro-website
+=============
+
+Generate a static website from markdown files.
+
+The generator converts all .md files to .html, sets up header and
+footer, as well as generating a sitemap, robots.txt, favicon and meta
+tags such as title and description for SEO.
+
+Uses https://github.com/San7o/micro-style.css/ for style.
+
+Author:  Giovanni Santini
+Mail:    giovanni.santini@proton.me
+License: MIT
+
+
+Dependencies
+------------
+
+  - Pandoc: https://pandoc.org/
+
+
+Usage
+-----
+
+
+   chmod +x ./generate.sh
+   ./generate.sh
+
+
+You can specify some tags at the start of the markdown files, such as
+title and description:
+
+   ---
+   title: micro-website
+   description: Generate a static website from markdown files
+   ---
