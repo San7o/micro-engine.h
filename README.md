@@ -2,7 +2,7 @@
 
 Microheaders, assemble!
 
-![](./micro-engine-marketing.jpg)
+![](./docs/micro-website/micro-engine-marketing.jpg)
 
 micro-engine is an header-only game engine. It is composed of several
 indipendent headers from the beautiful
