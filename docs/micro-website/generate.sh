@@ -54,6 +54,9 @@ ROBOTS_FILE="robots.txt"
 # Pandoc arguments
 PANDOC_FLAGS=""
 
+# Images directory
+IMG_DIR="./"
+
 #
 # Generation
 #
@@ -124,5 +127,9 @@ cp "$FAVICON_FILE" "$HTML_DIR/favicon.ico"
 echo "Copying robots.txt"
 cp "$ROBOTS_FILE" "$HTML_DIR/robots.txt"
 echo -e "\nSitemap: $BASE_URL/sitemap.txt" >> "$HTML_DIR/robots.txt"
+
+echo "Copying images"
+cp "$IMG_DIR"/*.jpg "$HTML_DIR/"
+
 
 echo "Done."
