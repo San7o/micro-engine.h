@@ -21,17 +21,23 @@ int main(void)
                                        0, 0, WIDTH, HEIGHT,
                                        RGFW_windowCenter
                                        | RGFW_windowNoResize);
-  
-  // TODO: framebuffer abstraction
-  unsigned char* data = malloc(WIDTH*HEIGHT* micro_draw_get_channels(MICRO_DRAW_RGBA8));
+
+  MicroDrawCanvas canvas = {0};
+  micro_draw_canvas_init(&canvas, WIDTH, HEIGHT, MICRO_DRAW_RGBA8);
 
   RGFW_surface *surface =
-    RGFW_window_createSurface(win, (u8*)data, WIDTH, HEIGHT, RGFW_formatRGBA8);
+    RGFW_window_createSurface(win, (u8*)canvas.data, WIDTH, HEIGHT, RGFW_formatRGBA8);
 
   RGFW_window_setExitKey(win, RGFW_escape);
 
   unsigned char white[4] = {255, 255, 255, 255};
   unsigned char black[4] = {0, 0, 0, 255};
+  MicroDrawText text = {
+    .text  = "hello, micro-engine!",
+    .x     = 100,
+    .y     = 100,
+    .scale = 0.5,
+  };
   
 	while (RGFW_window_shouldClose(win) == RGFW_FALSE)
   {
@@ -41,15 +47,14 @@ int main(void)
         break;
     }
     
-    micro_draw_clear(data, WIDTH, HEIGHT, white, MICRO_DRAW_RGBA8);
-    micro_draw_text(data, WIDTH, HEIGHT, MICRO_DRAW_RGBA8,
-                    "hello, micro-engine!", 100, 100, 0.5, black);
+    micro_draw_clear(&canvas, white);
+    micro_draw_text(&canvas, text, black);
     
     RGFW_window_blitSurface(win, surface);
 	}
 
   RGFW_surface_free(surface);
-  free(data);
+  micro_draw_canvas_free(&canvas);
 	RGFW_window_close(win);
   
   micro_log_close();

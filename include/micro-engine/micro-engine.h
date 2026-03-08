@@ -34,9 +34,9 @@
 #define MICRO_LA_IMPLEMENTATION
 
 #include "micro-log.h"
+#include "micro-la.h"
 #include "micro-draw.h"
 #include "micro-flag.h"
-#include "micro-la.h"
 #include "micro-conf.h"
 #include "micro-serde.h"
 

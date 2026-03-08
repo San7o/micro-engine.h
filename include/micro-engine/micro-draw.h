@@ -102,6 +102,14 @@ extern "C" {
   #define MICRO_DRAW_DEF extern
 #endif
 
+#ifndef MICRO_DRAW_MALLOC
+  #define MICRO_DRAW_MALLOC malloc
+#endif
+
+#ifndef MICRO_DRAW_FREE
+  #define MICRO_DRAW_FREE free
+#endif
+  
 //
 // Types
 //
@@ -128,10 +136,67 @@ micro_draw_font[128][MICRO_DRAW_FONT_HEIGHT][MICRO_DRAW_FONT_WIDTH];
 #define MICRO_DRAW_CHARACTER_PIXELS_X 50
 #define MICRO_DRAW_CHARACTER_PIXELS_Y 50
 
+typedef struct {
+  unsigned char* data;
+  int width;
+  int height;
+  MicroDrawPixel pixel;
+} MicroDrawCanvas;
+
+typedef struct {
+  char* text;
+  int x;
+  int y;
+  float scale;
+} MicroDrawText;
+  
+#ifndef MICRO_LA
+
+typedef struct {
+  int c_x; int c_y;
+  int r;
+} Circle;
+
+typedef struct {
+  int a_x; int a_y;
+  int b_x; int b_y;
+  int c_x; int c_y;
+  int d_x; int d_y;
+} Rect;
+  
+typedef struct {
+  int a_x; int a_y;
+  int b_x; int b_y;
+  int c_x; int c_y;
+} Triangle;
+  
+typedef struct {
+  int x;
+  int y;
+} Vec2;
+  
+#else
+
+typedef Recti       Rect;
+typedef Circlei     Circle;
+typedef Trianglei   Triangle;
+typedef Vec2i       Vec2;
+  
+#endif // MICRO_LA
+  
 //
 // Function declarations
 //
 
+// Canvas ------------------------------------------------------------
+
+MICRO_DRAW_DEF void
+micro_draw_canvas_init(MicroDrawCanvas *canvas,
+                       int width, int height,
+                       MicroDrawPixel pixel);
+
+MICRO_DRAW_DEF void micro_draw_canvas_free(MicroDrawCanvas *canvas);
+  
 // Color -------------------------------------------------------------
   
 // Return the number of channels of a pixel type
@@ -157,81 +222,79 @@ micro_draw_color_convert(unsigned char *color_src, MicroDrawPixel pixel_src,
                          unsigned char *color_dest, MicroDrawPixel pixel_dest);
   
 MICRO_DRAW_DEF unsigned char*
-micro_draw_color_from_rgba(unsigned char* color, MicroDrawPixel pixel);
+micro_draw_color_from_rgba(unsigned char* color,
+                           MicroDrawPixel pixel);
 
 MICRO_DRAW_DEF void
-micro_draw_get_color(unsigned char* data, int data_width, int data_height,
-                     int x, int y, unsigned char** color, MicroDrawPixel pixel);
+micro_draw_get_color(MicroDrawCanvas *canvas,
+                     Vec2 pos,
+                     unsigned char** color);
 
 // Primitives --------------------------------------------------------
   
 MICRO_DRAW_DEF void
-micro_draw_pixel(unsigned char* data, int data_width, int data_height,
-                 int x, int y, unsigned char* color, MicroDrawPixel pixel);
+micro_draw_pixel(MicroDrawCanvas *canvas,
+                 Vec2 pos,
+                 unsigned char *color);
 
 MICRO_DRAW_DEF void
-micro_draw_line(unsigned char* data, int data_width, int data_height,
-                int a_x, int a_y,int b_x, int b_y,
-                unsigned char* color, MicroDrawPixel pixel);
+micro_draw_line(MicroDrawCanvas *canvas,
+                Vec2 a,
+                Vec2 b,
+                unsigned char* color);
 
 MICRO_DRAW_DEF void
-micro_draw_fill_rect(unsigned char* data, int data_width, int data_height,
-                     int x, int y, int w, int h,
-                     unsigned char *color, MicroDrawPixel pixel);
+micro_draw_fill_rect(MicroDrawCanvas *canvas,
+                     Rect rect,
+                     unsigned char *color);
 
 MICRO_DRAW_DEF void
-micro_draw_fill_circle(unsigned char* data, int data_width, int data_height,
-                       int center_x, int center_y, int radius,
-                       unsigned char *color, MicroDrawPixel pixel);
+micro_draw_fill_circle(MicroDrawCanvas *canvas,
+                       Circle circle,
+                       unsigned char *color);
 
 MICRO_DRAW_DEF void
-micro_draw_fill_triangle(unsigned char *data, int data_width, int data_height,
-                         int a_x, int a_y, int b_x, int b_y, int c_x, int c_y,
-                         unsigned char *color, MicroDrawPixel pixel);
+micro_draw_fill_triangle(MicroDrawCanvas *canvas,
+                         Triangle triangle,
+                         unsigned char *color);
 
 MICRO_DRAW_DEF void
-micro_draw_grid(unsigned char* data, int data_width, int data_height,
-                int columns, int rows, unsigned char* color, MicroDrawPixel pixel);
+micro_draw_grid(MicroDrawCanvas *canvas,
+                int columns, int rows,
+                unsigned char* color);
 
 MICRO_DRAW_DEF void
-micro_draw_clear(unsigned char* data, int data_width, int data_height,
-                 unsigned char *color, MicroDrawPixel pixel);
+micro_draw_clear(MicroDrawCanvas *canvas,
+                 unsigned char *color);
 
 // Transformations ---------------------------------------------------
   
 MICRO_DRAW_DEF void
-micro_draw_scaled(unsigned char* source_data,
-                  int source_data_width, int souce_data_height,
-                  MicroDrawPixel src_pixel, unsigned char* dest_data,
-                  int dest_data_width, int dest_data_height,
-                  MicroDrawPixel dest_pixel);
+micro_draw_scaled(MicroDrawCanvas *source_canvas,
+                  MicroDrawCanvas *dest_canvas);
 
 MICRO_DRAW_DEF void
-micro_draw_overlap(unsigned char* src_data, int src_data_width,
-                   int src_data_height, MicroDrawPixel src_pixel,
-                   unsigned char* dest_data, int dest_data_width,
-                   int dest_data_height, MicroDrawPixel dest_pixel,
-                   int x_offset, int y_offset);
+micro_draw_overlap(MicroDrawCanvas *source_canvas,
+                   MicroDrawCanvas *dest_canvas,
+                   Vec2 offset);
   
 // Text --------------------------------------------------------------
   
 MICRO_DRAW_DEF void
-micro_draw_text(unsigned char* data, int data_width, int data_height,
-                MicroDrawPixel pixel_data, char* text, int text_x,
-                int text_y, float text_scale, unsigned char* text_color);
+micro_draw_text(MicroDrawCanvas *canvas,
+                MicroDrawText text,
+                unsigned char* color);
 
 // PPM ---------------------------------------------------------------
   
 #ifdef MICRO_DRAW_PPM
 
 MICRO_DRAW_DEF MicroDrawError
-micro_draw_to_ppm(const char *filename, unsigned char *data,
-                  int data_width, int data_height, MicroDrawPixel pixel);
+micro_draw_to_ppm(const char *filename, MicroDrawCanvas *canvas);
 
 
 MICRO_DRAW_DEF MicroDrawError
-micro_draw_from_ppm(const char *filename, unsigned char **data,
-                    int *data_width, int *data_height, MicroDrawPixel *pixel);
+micro_draw_from_ppm(const char *filename, MicroDrawCanvas **canvas);
 
 #endif // MICRO_DRAW_PPM
 
@@ -243,6 +306,24 @@ micro_draw_from_ppm(const char *filename, unsigned char **data,
 
 #include <assert.h>
 
+void micro_draw_canvas_init(MicroDrawCanvas *canvas,
+                            int width, int height,
+                            MicroDrawPixel pixel)
+{
+  if (!canvas) return;
+
+  canvas->width  = width;
+  canvas->height = height;
+  canvas->pixel  = pixel;
+  canvas->data   = MICRO_DRAW_MALLOC(width * height
+                                     * micro_draw_get_channels(pixel));
+}
+
+void micro_draw_canvas_free(MicroDrawCanvas *canvas)
+{
+  MICRO_DRAW_FREE(canvas->data);
+}
+  
 _Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
                "Updated MicroDrawPixel, should also update micro_draw_get_channels");
 MICRO_DRAW_DEF unsigned int micro_draw_get_channels(MicroDrawPixel pixel)
@@ -350,55 +431,59 @@ _micro_draw_memcpy(void *dest, const void *src, unsigned int n)
 }
   
 MICRO_DRAW_DEF void
-micro_draw_pixel(unsigned char* data, int data_width, int data_height,
-                 int x, int y, unsigned char* color, MicroDrawPixel pixel)
+micro_draw_pixel(MicroDrawCanvas *canvas,
+                 Vec2 pos,
+                 unsigned char* color)
 {
-  if (x >= data_width || x < 0 || y >= data_height || y < 0) return;
+  if (!canvas || pos.x >= canvas->width || pos.x < 0
+      || pos.y >= canvas->height || pos.y < 0) return;
 
-  int channel_size = micro_draw_get_channel_size(pixel); // bytes
-  unsigned int channels = micro_draw_get_channels(pixel);
-  int index = (y * data_width + x) * channels * channel_size;
+  int channel_size = micro_draw_get_channel_size(canvas->pixel); // bytes
+  unsigned int channels = micro_draw_get_channels(canvas->pixel);
+  int index = (pos.y * canvas->width + pos.x) * channels * channel_size;
   
-  _micro_draw_memcpy(&data[index], color, channels * channel_size);
+  _micro_draw_memcpy(&canvas->data[index], color, channels * channel_size);
 
   return;
 }
 
 MICRO_DRAW_DEF void
-micro_draw_line(unsigned char* data, int data_width, int data_height,
-                int a_x, int a_y, int b_x, int b_y,
-                unsigned char* color, MicroDrawPixel pixel)
+micro_draw_line(MicroDrawCanvas *canvas,
+                Vec2 a, Vec2 b,
+                unsigned char* color)
 {
+  if (!canvas) return;
+  
   // Line equation
-  double m = (a_y - b_y) / (double)(a_x - b_x);
-  double q = a_y - m * a_x;
+  double m = (a.y - b.y) / (double)(a.x - b.x);
+  double q = a.y - m * a.x;
   int is_steep = (m > 1 || m < -1);
 
   if (is_steep)
   {
     // Transpose the image
-    int tmp = a_x;
-    a_x = a_y;
-    a_y = tmp;
+    int tmp = a.x;
+    a.x = a.y;
+    a.y = tmp;
 
-    tmp = b_x;
-    b_x = b_y;
-    b_y = tmp;
+    tmp = b.x;
+    b.x = b.y;
+    b.y = tmp;
 
-    m = (a_y - b_y) / (double)(a_x - b_x);
-    q = a_y - m * a_x;
+    m = (a.y - b.y) / (double)(a.x - b.x);
+    q = a.y - m * a.x;
   }
 
   int start, end;
-  if (a_x > b_x)
+  if (a.x > b.x)
   {
-    start = b_x;
-    end = a_x;
+    start = b.x;
+    end = a.x;
   }
   else
   {
-    start = a_x;
-    end = b_x;
+    start = a.x;
+    end = b.x;
   }
 
   if (is_steep)
@@ -408,8 +493,7 @@ micro_draw_line(unsigned char* data, int data_width, int data_height,
     {
       int p_y = m * p_x + q;
       // Retranspose the image
-      micro_draw_pixel(data, data_width, data_height,
-                       p_y, p_x, color, pixel);
+      micro_draw_pixel(canvas, (Vec2){ .x = p_y, .y = p_x }, color);
     }
   }
   else
@@ -418,8 +502,7 @@ micro_draw_line(unsigned char* data, int data_width, int data_height,
     for (int p_x = start; p_x < end; ++p_x)
     {
       int p_y = m * p_x + q;
-      micro_draw_pixel(data, data_width, data_height,
-                       p_x, p_y, color, pixel);
+      micro_draw_pixel(canvas, (Vec2) { .x = p_x, .y = p_y }, color);
     }
   }
   
@@ -427,39 +510,39 @@ micro_draw_line(unsigned char* data, int data_width, int data_height,
 }
 
 MICRO_DRAW_DEF void
-micro_draw_clear(unsigned char* data, int data_width, int data_height,
-                 unsigned char *color, MicroDrawPixel pixel)
+micro_draw_clear(MicroDrawCanvas *canvas,
+                 unsigned char *color)
 {
-  for (int row = 0; row < data_height; ++row)
-    for (int col = 0; col < data_width; ++col)
-      micro_draw_pixel(data, data_width, data_height,
-                       col, row, color, pixel);
+  if (!canvas) return;
+  
+  for (int row = 0; row < canvas->height; ++row)
+    for (int col = 0; col < canvas->width; ++col)
+      micro_draw_pixel(canvas, (Vec2) { .x = col, .y = row }, color);
 }
 
 _Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
                "MicroDrawPixel has changed, make sure that color_dest in micro_draw_overlap is enough");
 MICRO_DRAW_DEF void
-micro_draw_overlap(unsigned char* src_data, int src_data_width,
-                   int src_data_height, MicroDrawPixel src_pixel,
-                   unsigned char* dest_data, int dest_data_width,
-                   int dest_data_height, MicroDrawPixel dest_pixel,
-                   int x_offset, int y_offset)
+micro_draw_overlap(MicroDrawCanvas *src_canvas,
+                   MicroDrawCanvas *dest_canvas,
+                   Vec2 offset)
 {
-  int channel_size = micro_draw_get_channel_size(src_pixel); // bytes
-  unsigned int channels = micro_draw_get_channels(src_pixel);
+  int channel_size = micro_draw_get_channel_size(src_canvas->pixel); // bytes
+  unsigned int channels = micro_draw_get_channels(src_canvas->pixel);
 
-  for (int row = 0; row < src_data_height; ++row)
+  for (int row = 0; row < src_canvas->height; ++row)
   {
-    for (int col = 0; col < src_data_width; ++col)
+    for (int col = 0; col < src_canvas->width; ++col)
     {
       if (row < 0 || col < 0) continue;
 
-      int index = (row * src_data_width + col) * channels * channel_size;
+      int index = (row * src_canvas->width + col) * channels * channel_size;
       unsigned char color_dest[4] = {0}; // 4 is enough for now
-      micro_draw_color_convert(src_data + index, src_pixel,
-                               color_dest, dest_pixel);
-      micro_draw_pixel(dest_data, dest_data_width, dest_data_height,
-                       col + x_offset, row + y_offset, color_dest, dest_pixel);
+      micro_draw_color_convert(src_canvas->data + index, src_canvas->pixel,
+                               color_dest, dest_canvas->pixel);
+      micro_draw_pixel(dest_canvas,
+                       (Vec2) { .x = col + offset.x, .y = row + offset.y },
+                       color_dest);
     }
   }
   
@@ -467,42 +550,45 @@ micro_draw_overlap(unsigned char* src_data, int src_data_width,
 }
 
 MICRO_DRAW_DEF void
-micro_draw_fill_rect(unsigned char* data, int data_width, int data_height,
-                     int x, int y, int w, int h, unsigned char *color,
-                     MicroDrawPixel pixel)
+micro_draw_fill_rect(MicroDrawCanvas *canvas,
+                     Rect rect,
+                     unsigned char *color)
 {
-  for (int row = y; row < h + y && row < data_height; ++row)
-  {
-    for (int col = x; col < w + x && col < data_width; ++col)
-    {
-      if (row < 0 || col < 0) continue;
-      micro_draw_pixel(data, data_width, data_height,
-                       col, row, color, pixel);
-    }
-  }
-  
+
+  micro_draw_fill_triangle(canvas,
+                           (Triangle) {
+                             .a_x = rect.a_x, .a_y = rect.a_y,
+                             .b_x = rect.b_x, .b_y = rect.b_y,
+                             .c_x = rect.c_x, .c_y = rect.c_y,
+                           }, color);
+  micro_draw_fill_triangle(canvas,
+                           (Triangle) {
+                             .a_x = rect.a_x, .a_y = rect.a_y,
+                             .b_x = rect.c_x, .b_y = rect.c_y,
+                             .c_x = rect.d_x, .c_y = rect.d_y,
+                           }, color);
+
   return;
 }
 
 #define MICRO_DRAW_ABS(x) (((x) >= 0) ? (x) : -(x))
 
 MICRO_DRAW_DEF void
-micro_draw_fill_circle(unsigned char* data, int data_width, int data_height,
-                       int center_x, int center_y, int radius,
-                       unsigned char *color, MicroDrawPixel pixel)
+micro_draw_fill_circle(MicroDrawCanvas *canvas,
+                       Circle circle,
+                       unsigned char *color)
 {
-  for (int row = center_y - radius; row < center_y + radius && row < data_height; ++row)
+  for (int row = circle.c_y - circle.r; row < circle.c_y + circle.r && row < canvas->height; ++row)
   {
-    for (int col = center_x - radius; col < center_x + radius && col < data_width; ++col)
+    for (int col = circle.c_x - circle.r; col < circle.c_x + circle.r && col < canvas->width; ++col)
     {
       if (row < 0 || col < 0) continue;
       
-      int dx = MICRO_DRAW_ABS(col - center_x);
-      int dy = MICRO_DRAW_ABS(row - center_y);
-      if (dx*dx + dy*dy > radius*radius) continue;
+      int dx = MICRO_DRAW_ABS(col - circle.c_x);
+      int dy = MICRO_DRAW_ABS(row - circle.c_y);
+      if (dx*dx + dy*dy > circle.r*circle.r) continue;
       
-      micro_draw_pixel(data, data_width, data_height,
-                       col, row, color, pixel);
+      micro_draw_pixel(canvas, (Vec2) { .x = col, .y = row }, color);
     }
   }
 
@@ -548,36 +634,34 @@ micro_draw_fill_circle(unsigned char* data, int data_width, int data_height,
 
 // https://fgiesen.wordpress.com/2013/02/08/triangle-rasterization-in-practice/
 MICRO_DRAW_DEF void
-micro_draw_fill_triangle(unsigned char *data, int data_width, int data_height,
-                         int a_x, int a_y, int b_x, int b_y,
-                         int c_x, int c_y, unsigned char *color,
-                         MicroDrawPixel pixel)
+micro_draw_fill_triangle(MicroDrawCanvas *canvas,
+                         Triangle triangle,
+                         unsigned char *color)
 {
   // Compute triangle bounding box
-  int minX = _micro_draw_min3(a_x, b_x, c_x);
-  int minY = _micro_draw_min3(a_y, b_y, c_y);
-  int maxX = _micro_draw_max3(a_x, b_x, c_x);
-  int maxY = _micro_draw_max3(a_y, b_y, c_y);
+  int minX = _micro_draw_min3(triangle.a_x, triangle.b_x, triangle.c_x);
+  int minY = _micro_draw_min3(triangle.a_y, triangle.b_y, triangle.c_y);
+  int maxX = _micro_draw_max3(triangle.a_x, triangle.b_x, triangle.c_x);
+  int maxY = _micro_draw_max3(triangle.a_y, triangle.b_y, triangle.c_y);
 
   // Clip against screen bounds
   minX = _micro_draw_max(minX, 0);
   minY = _micro_draw_max(minY, 0);
-  maxX = _micro_draw_min(maxX, data_width - 1);
-  maxY = _micro_draw_min(maxY, data_height - 1);
+  maxX = _micro_draw_min(maxX, canvas->width - 1);
+  maxY = _micro_draw_min(maxY, canvas->height - 1);
 
   for (int row = minY; row <= maxY; ++row)
   {
     for (int col = minX; col <= maxX; ++col)
     {  
       // Determine barycentric coordinates
-      int w0 = _micro_draw_orient2D(b_x, b_y, c_x, c_y, col, row);
-      int w1 = _micro_draw_orient2D(c_x, c_y, a_x, a_y, col, row);
-      int w2 = _micro_draw_orient2D(a_x, a_y, b_x, b_y, col, row);
+      int w0 = _micro_draw_orient2D(triangle.b_x, triangle.b_y, triangle.c_x, triangle.c_y, col, row);
+      int w1 = _micro_draw_orient2D(triangle.c_x, triangle.c_y, triangle.a_x, triangle.a_y, col, row);
+      int w2 = _micro_draw_orient2D(triangle.a_x, triangle.a_y, triangle.b_x, triangle.b_y, col, row);
 
       // If p is on or inside all edges, render pixel.
       if (w0 >= 0 && w1 >= 0 && w2 >= 0)
-        micro_draw_pixel(data, data_width, data_height,
-                         col, row, color, pixel);
+        micro_draw_pixel(canvas, (Vec2) { .x = col, .y = row }, color);
     }
   }
 
@@ -585,63 +669,71 @@ micro_draw_fill_triangle(unsigned char *data, int data_width, int data_height,
 }
   
 MICRO_DRAW_DEF void
-micro_draw_grid(unsigned char* data, int data_width, int data_height,
-                int columns, int rows, unsigned char* color, MicroDrawPixel pixel)
+micro_draw_grid(MicroDrawCanvas *canvas,
+                int columns, int rows,
+                unsigned char* color)
 {
+  if (!canvas) return;
+  
   // Draw columns
-  for (int x = 0; x < data_width; x += data_width / columns)
+  for (int x = 0; x < canvas->width; x += canvas->width / columns)
   {
-    micro_draw_line(data, data_width, data_height,
-                     x, 0, x, data_height,
-                     color, pixel);
+    micro_draw_line(canvas,
+                    (Vec2) { .x = x, .y = 0 },
+                    (Vec2) { .x = x, .y = canvas->height},
+                    color);
   }
   
   // Draw rows
-  for (int y = 0; y < data_height; y += data_height / rows)
+  for (int y = 0; y < canvas->height; y += canvas->height / rows)
   {
-    micro_draw_line(data, data_width, data_height,
-                     0, y, data_width, y,
-                     color, pixel);
+    micro_draw_line(canvas,
+                    (Vec2) { .x = 0, .y = y },
+                    (Vec2) { .x = canvas->width, .y = y },
+                    color);
   }
   return;
 }
 
 MICRO_DRAW_DEF void
-micro_draw_get_color(unsigned char* data, int data_width, int data_height,
-                     int x, int y, unsigned char** color, MicroDrawPixel pixel)
+micro_draw_get_color(MicroDrawCanvas *canvas,
+                     Vec2 pos,
+                     unsigned char** color)
 {
-  if (x >= data_width || x < 0 || y >= data_height || y < 0) return;
+  if (!canvas || pos.x >= canvas->width || pos.x < 0
+      || pos.y >= canvas->height || pos.y < 0) return;
 
-  int channel_size = micro_draw_get_channel_size(pixel); // bytes
-  unsigned int channels = micro_draw_get_channels(pixel);
-  int index = (y * data_width + x) * channels * channel_size;
+  int channel_size = micro_draw_get_channel_size(canvas->pixel); // bytes
+  unsigned int channels = micro_draw_get_channels(canvas->pixel);
+  int index = (pos.y * canvas->width + pos.x) * channels * channel_size;
 
-  *color = data + index;
+  *color = canvas->data + index;
   return;
 }
 
 _Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
                "MicroDrawPixel has changed, make sure that color_dest in micro_draw_scaled is enough");
 MICRO_DRAW_DEF void
-micro_draw_scaled(unsigned char* src_data, int src_data_width, int src_data_height,
-                  MicroDrawPixel src_pixel, unsigned char* dest_data,
-                  int dest_data_width, int dest_data_height,
-                  MicroDrawPixel dest_pixel)
+micro_draw_scaled(MicroDrawCanvas *src_canvas,
+                  MicroDrawCanvas *dest_canvas)
 {
-  for (int y = 0; y < dest_data_height; ++y)
+  for (int y = 0; y < dest_canvas->height; ++y)
   {
-    for (int x = 0; x < dest_data_width; ++x)
+    for (int x = 0; x < dest_canvas->width; ++x)
     {
-      int x_frame = (x * src_data_width) / (double)dest_data_width;
-      int y_frame = (y * src_data_height) / (double)dest_data_height;
+      int x_frame = (x * src_canvas->width) / (double)dest_canvas->width;
+      int y_frame = (y * src_canvas->height) / (double)dest_canvas->height;
       unsigned char *color = NULL;
-      micro_draw_get_color(src_data, src_data_width, src_data_height,
-                           x_frame, y_frame, &color, src_pixel);
+      micro_draw_get_color(src_canvas,
+                           (Vec2) { .x = x_frame, .y = y_frame },
+                           &color);
 
       unsigned char color_dest[4] = {0}; // 4 is enough for now
-      micro_draw_color_convert(color, src_pixel, color_dest, dest_pixel);
-      micro_draw_pixel(dest_data, dest_data_width, dest_data_height,
-                       x, y, color_dest, dest_pixel);
+      micro_draw_color_convert(color, src_canvas->pixel,
+                               color_dest, dest_canvas->pixel);
+      micro_draw_pixel(dest_canvas,
+                       (Vec2) { .x = x, .y = y },
+                       color_dest);
     }
   }
   return;
@@ -688,21 +780,21 @@ static inline int _micro_draw_strlen(char* str)
 _Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
                "MicroDrawPixel has changed, make sure that color_dest in micro_draw_text is enough");
 MICRO_DRAW_DEF void
-micro_draw_text(unsigned char* data, int data_width, int data_height,
-                MicroDrawPixel pixel_data, char* text, int text_x,
-                int text_y, float text_scale, unsigned char* text_color)
+micro_draw_text(MicroDrawCanvas *canvas,
+                MicroDrawText text,
+                unsigned char* color)
 {
-  int channel_size = micro_draw_get_channel_size(pixel_data); // bytes
-  unsigned int channels = micro_draw_get_channels(pixel_data);
-  int char_x = MICRO_DRAW_CHARACTER_PIXELS_X * text_scale;
-  int char_y = MICRO_DRAW_CHARACTER_PIXELS_Y * text_scale;
+  int channel_size = micro_draw_get_channel_size(canvas->pixel); // bytes
+  unsigned int channels = micro_draw_get_channels(canvas->pixel);
+  int char_x = MICRO_DRAW_CHARACTER_PIXELS_X * text.scale;
+  int char_y = MICRO_DRAW_CHARACTER_PIXELS_Y * text.scale;
   int text_row = 0;
   int text_col = 0;
-  int text_len = _micro_draw_strlen(text);
+  int text_len = _micro_draw_strlen(text.text);
   
   for (int c = 0; c < text_len; ++c)
   {
-    if (text[c] == '\n')
+    if (text.text[c] == '\n')
     {
       text_row++;
       text_col = 0;
@@ -716,23 +808,26 @@ micro_draw_text(unsigned char* data, int data_width, int data_height,
         int font_x = (x * MICRO_DRAW_FONT_WIDTH) / (double)char_x;
         int font_y = (y * MICRO_DRAW_FONT_HEIGHT) / (double)char_y;
 
-        if (micro_draw_font[(int)text[c]][font_y][font_x] == 0)
+        if (micro_draw_font[(int)text.text[c]][font_y][font_x] == 0)
           continue;
         
         // Calculate color
         unsigned char color_dest[4] = {0};
         for (unsigned int i = 0; i < channels * channel_size; ++i)
           color_dest[i] =
-            text_color[i] *
-            micro_draw_font[(int)text[c]][font_y][font_x];
+            color[i] *
+            micro_draw_font[(int)text.text[c]][font_y][font_x];
 
         // TODO: implement transparency by multiplying color_dest by
         //       the color in data
 
         // Draw with translation
-        micro_draw_pixel(data, data_width, data_height,
-                         x + text_x + text_col * char_x,
-                         y + text_y + text_row * char_y, color_dest, pixel_data);
+        micro_draw_pixel(canvas,
+                         (Vec2) {
+                           .x = x + text.x + text_col * char_x,
+                           .y = y + text.y + text_row * char_y
+                         },
+                         color_dest);
       }
     }
     text_col++;
@@ -760,8 +855,7 @@ micro_draw_text(unsigned char* data, int data_width, int data_height,
 _Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
                "Updated MicroDrawPixel, should also update micro_draw_to_ppm");
 MICRO_DRAW_DEF MicroDrawError
-micro_draw_to_ppm(const char *filename, unsigned char *data,
-                  int data_width, int data_height, MicroDrawPixel pixel)
+micro_draw_to_ppm(const char *filename, MicrDrawCanvas *canvas)
 {
   MicroDrawError error = MICRO_DRAW_OK;
   
@@ -772,28 +866,28 @@ micro_draw_to_ppm(const char *filename, unsigned char *data,
     return MICRO_DRAW_ERROR_OPEN_FILE;
   }
 
-  int channels = micro_draw_get_channels(pixel);
-  int channel_size = micro_draw_get_channel_size(pixel);
-  int data_size = data_width * data_height * channels * channel_size;
+  int channels = micro_draw_get_channels(canvas->pixel);
+  int channel_size = micro_draw_get_channel_size(canvas->pixel);
+  int data_size = canvas->width * canvas->height * channels * channel_size;
 
   switch(pixel)
   {
   case MICRO_DRAW_RGBA8:
     
-    fprintf(file, "P6\n%d %d\n%d\n", data_width,
-            data_height, (1 << (channel_size * 8)) - 1);
+    fprintf(file, "P6\n%d %d\n%d\n", canvas->width,
+            canvas->height, (1 << (channel_size * 8)) - 1);
     for (int i = 0; i < data_size; i += channels * channel_size)
     {
-      fwrite(data + i, channel_size, (channels - 1), file);
+      fwrite(canvas->data + i, channel_size, (channels - 1), file);
     }
     break;
     
   case MICRO_DRAW_BLACK_WHITE:
     
-    fprintf(file, "P1\n%d %d\n%d\n", data_width, data_height, 1);
+    fprintf(file, "P1\n%d %d\n%d\n", canvas->width, canvas->height, 1);
     for (int i = 0; i < data_size; i += channels * channel_size)
     {
-      fwrite(data + i, channel_size, (channels - 1), file);
+      fwrite(canvas->data + i, channel_size, (channels - 1), file);
     }
     break;
     
@@ -834,8 +928,7 @@ typedef enum {
 _Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
                "Updated MicroDrawPixel, should also update micro_from_to_ppm");
 MICRO_DRAW_DEF MicroDrawError
-micro_draw_from_ppm(const char* filename, unsigned char **data,
-                    int *data_width, int *data_height, MicroDrawPixel *pixel)
+micro_draw_from_ppm(const char* filename, MicroDrawCanvas **canvas)
 {
   _MicroDrawPPMType file_type = 0;
   int color_max = 0;
@@ -884,8 +977,8 @@ micro_draw_from_ppm(const char* filename, unsigned char **data,
       fread(num_buff + position, 1, 1, file);
       position++;
     } while (!_micro_draw_is_whitespace(num_buff[position-1]) && position < 30);
-    *data_width = atoi(num_buff);
-    if (*data_width == 0)
+    canvas->width = atoi(num_buff);
+    if (canvas->width == 0)
     {
       error = MICRO_DRAW_ERROR_INVALID_IMAGE_SIZE;
       goto done;
@@ -901,8 +994,8 @@ micro_draw_from_ppm(const char* filename, unsigned char **data,
       fread(num_buff + position, 1, 1, file);
       position++;
     } while (!_micro_draw_is_whitespace(num_buff[position-1]) && position < 30);
-    *data_height = atoi(num_buff);
-    if (*data_width == 0)
+    canvas->height = atoi(num_buff);
+    if (canvas->height == 0)
     {
       error = MICRO_DRAW_ERROR_INVALID_IMAGE_SIZE;
       goto done;
@@ -920,7 +1013,7 @@ micro_draw_from_ppm(const char* filename, unsigned char **data,
       position++;
     } while (!_micro_draw_is_whitespace(num_buff[position-1]) && position < 30);
     color_max = atoi(num_buff);
-    if (*data_width == 0)
+    if (color_max == 0)
     {
       error = MICRO_DRAW_ERROR_INVALID_IMAGE_SIZE;
       goto done;

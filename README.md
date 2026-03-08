@@ -21,7 +21,6 @@ playing sound.
 
 As Brenta grew in complexity, it naturally became more cumbersome to
 quickly design and implement new features and applications. This is a
-fundamental problem of all software, not a fault of my engine. I
-Hence I wanted to experiment with a simpler approach. I mean "simple"
-in its most general form: in the abstraction, workflow and
-implementation.
+fundamental problem of all software, not a fault of my engine. Hence I
+wanted to experiment with a simpler approach. I mean "simple" in its
+most general form: in the abstraction, workflow and implementation.
