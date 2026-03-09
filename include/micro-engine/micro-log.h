@@ -614,6 +614,11 @@ _micro_log_print_outputs_args(MicroLog *micro_log,
 
 #ifdef MICRO_LOG_IMPLEMENTATION
 
+#ifndef MICRO_STATIC_ASSERT
+#define MICRO_STATIC_ASSERT(cond, msg)                  \
+  typedef char static_assertion_##msg##__LINE__[(cond) ? 1 : -1]
+#endif
+
 #define _GNU_SOURCE
 #include <unistd.h>
 #include <time.h>
@@ -1128,8 +1133,8 @@ MICRO_LOG_DEF micro_log_error micro_log_close2(MicroLog *micro_log)
   return error;
 }
 
-_Static_assert(_MICRO_LOG_OUT_MAX == (1 << 4),
-               "Updated MICRO_LOG_OUT_MAX, maybe should also update micro_log_flush2");
+MICRO_STATIC_ASSERT(_MICRO_LOG_OUT_MAX == (1 << 4),
+                    maybe_should_also_update_micro_log_flush2);
 MICRO_LOG_DEF micro_log_error micro_log_flush2(MicroLog *micro_log)
 {
   if (micro_log == NULL)
@@ -1265,8 +1270,8 @@ micro_log_set_file2(MicroLog *micro_log,
 
 #ifdef MICRO_LOG_SOCKETS
 
-_Static_assert(_MICRO_LOG_PROTO_MAX == 2,
-               "Updated MicroLogProto, should also update micro_log_set_socket_inet2");
+MICRO_STATIC_ASSERT(_MICRO_LOG_PROTO_MAX == 2,
+                    should_also_update_micro_log_set_socket_inet2);
 MICRO_LOG_DEF micro_log_error
 micro_log_set_socket_inet2(MicroLog *micro_log,
                            char* addr,
@@ -1401,8 +1406,8 @@ micro_log_set_socket_unix2(MicroLog* micro_log, char* path)
 
 #endif // MICRO_LOG_SOCKETS
 
-_Static_assert(MICRO_LOG_LEVEL_MAX == 7,
-               "Updated MICRO_LOG_LEVEL, should also update micro_log_level_string");
+MICRO_STATIC_ASSERT(MICRO_LOG_LEVEL_MAX == 7,
+                    should_also_update_micro_log_level_string);
 MICRO_LOG_DEF const char*
 micro_log_level_string(MicroLogLevel level, bool color)
 {
@@ -1674,8 +1679,8 @@ _micro_log_print_outputs(MicroLog *micro_log, const char* fmt, ...)
   return error;
 }
 
-_Static_assert(_MICRO_LOG_OUT_MAX == (1 << 4),
-               "Updated MICRO_LOG_OUT, should also update _micro_log_print_outputs_args");
+MICRO_STATIC_ASSERT(_MICRO_LOG_OUT_MAX == (1 << 4),
+                    should_also_update_micro_log_print_outputs_args);
 MICRO_LOG_DEF micro_log_error
 _micro_log_print_outputs_args(MicroLog *micro_log,
                               const char* fmt,

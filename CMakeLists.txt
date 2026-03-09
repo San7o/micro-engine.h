@@ -14,9 +14,14 @@ project(micro-engine
   LANGUAGES C
 )
 
-set(CMAKE_C_STANDARD 99)
+if (EMSCRIPTEN)
+  set(CMAKE_C_STANDARD 23)
+  set(CMAKE_C_EXTENSIONS ON)
+else()
+  set(CMAKE_C_STANDARD 99)
+  set(CMAKE_C_EXTENSIONS OFF)  # no gnu extensions
+endif()
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)  # no gnu extensions
 
 find_program(CCACHE_PROGRAM ccache) # use ccache if available
 if(CCACHE_PROGRAM)
@@ -30,12 +35,20 @@ if(MSVC)
   set(RELEASE_FLAGS /O2)
   set(DEBUG_DEFINES _DEBUG)
 elseif(MINGW)
-  set(WARNING_FLAGS -Wall -Wextra -Wpedantic)
+  if (EMSCRIPTEN)
+    set(WARNING_FLAGS -Wall -Wextra -Wpedantic)
+  else()
+    set(WARNING_FLAGS -Wall -Werror -Wextra -Wpedantic)
+  endif()
   set(DEBUG_FLAGS -O0 -ggdb)
   set(RELEASE_FLAGS -O3)
   set(DEBUG_DEFINES _DEBUG)
 else()
-  set(WARNING_FLAGS -Wall -Wextra -Werror -Wpedantic)
+  if (EMSCRIPTEN)
+    set(WARNING_FLAGS -Wall -Wextra -Wpedantic)
+  else()
+    set(WARNING_FLAGS -Wall -Wextra -Werror -Wpedantic)
+  endif()
   set(DEBUG_FLAGS -O0 -ggdb -fsanitize=address)
   set(RELEASE_FLAGS -O3)
   set(DEBUG_DEFINES _DEBUG)
@@ -75,30 +88,48 @@ endif()
 #
 
 set(MICRO_ENGINE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include)
-set(MICRO_ENGINE_LINK_LIBS -lm -lX11 -lXrandr)
+set(MICRO_ENGINE_LINK_LIBS -lm -lX11)
 
-function(add_example NAME)
+function(add_example NAME ADDITIONAL_LINK_LIBS)
   message(STATUS "Added example ${NAME}")
   
   add_executable(${NAME}
     ${PROJECT_SOURCE_DIR}/examples/${PROJECT_NAME}-impl.c
     ${PROJECT_SOURCE_DIR}/examples/${NAME}.c)
+
   target_include_directories(${NAME} PRIVATE
     ${MICRO_ENGINE_INCLUDE_DIRS})
   target_compile_definitions(${NAME} PRIVATE
     ${MICRO_ENGINE_DEBUG_DEFINES})
   target_link_libraries(${NAME} PRIVATE
-    ${MICRO_ENGINE_LINK_LIBS} SDL3)
+    ${MICRO_ENGINE_LINK_LIBS} ${ADDITIONAL_LINK_LIBS})
   target_compile_options(${NAME} PRIVATE
     ${MICRO_ENGINE_COMPILE_OPTIONS})
   target_link_options(${NAME} PRIVATE
-      ${MICRO_ENGINE_LINK_OPTIONS})
+    ${MICRO_ENGINE_LINK_OPTIONS})
+
+  if(EMSCRIPTEN)
+    set_target_properties(${NAME} PROPERTIES SUFFIX ".html")
+    target_link_options(${NAME} PRIVATE
+      #"-sUSE_SDL=3"
+      "SHELL:--shell-file \"${PROJECT_SOURCE_DIR}/utils/wasm_template.html\""
+      "-sEXPORTED_RUNTIME_METHODS=[\"HEAPU8\",\"stringToNewUTF8\"]"
+      #"-sEXPORT_ALL=1"
+      "-sASYNCIFY"
+      "-sASSERTIONS"
+    )
+  endif()
+  
 endfunction()
 
 if (MICRO_ENGINE_BUILD_EXAMPLES)
-  add_example(sdl3_demo)
-  add_example(rgfw_demo)
-  add_example(app_example)
+  add_example(sdl3_demo SDL3)
+  add_example(rgfw_demo Xrandr)
+  if (EMSCRIPTEN)
+    add_example(app_example "")
+  else()
+    add_example(app_example Xrandr)
+  endif()
 endif()
 
 #

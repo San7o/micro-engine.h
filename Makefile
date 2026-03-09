@@ -17,3 +17,8 @@ test: build
 .PHONY: html
 html:
 	cd docs/micro-website && ./generate.sh
+
+.PHONY: wasm
+wasm:
+	emcmake cmake -Bbuild
+	emmake make app_example -C build

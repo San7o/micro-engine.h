@@ -306,6 +306,11 @@ micro_draw_from_ppm(const char *filename, MicroDrawCanvas **canvas);
 
 #include <assert.h>
 
+#ifndef MICRO_STATIC_ASSERT
+#define MICRO_STATIC_ASSERT(cond, msg)                  \
+  typedef char static_assertion_##msg##__LINE__[(cond) ? 1 : -1]
+#endif
+  
 void micro_draw_canvas_init(MicroDrawCanvas *canvas,
                             int width, int height,
                             MicroDrawPixel pixel)
@@ -322,10 +327,10 @@ void micro_draw_canvas_init(MicroDrawCanvas *canvas,
 void micro_draw_canvas_free(MicroDrawCanvas *canvas)
 {
   MICRO_DRAW_FREE(canvas->data);
-}
+}  
   
-_Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
-               "Updated MicroDrawPixel, should also update micro_draw_get_channels");
+MICRO_STATIC_ASSERT(_MICRO_DRAW_PIXEL_MAX == 2,
+                    should_also_update_micro_draw_get_channels);
 MICRO_DRAW_DEF unsigned int micro_draw_get_channels(MicroDrawPixel pixel)
 {
   switch(pixel)
@@ -341,8 +346,8 @@ MICRO_DRAW_DEF unsigned int micro_draw_get_channels(MicroDrawPixel pixel)
   return 0;
 }
 
-_Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
-               "Updated MicroDrawPixel, should also update micro_draw_get_channel_size");
+MICRO_STATIC_ASSERT(_MICRO_DRAW_PIXEL_MAX == 2,
+                    should_also_update_micro_draw_get_channel_size);
 MICRO_DRAW_DEF unsigned int micro_draw_get_channel_size(MicroDrawPixel pixel)
 {
   switch(pixel)
@@ -358,8 +363,8 @@ MICRO_DRAW_DEF unsigned int micro_draw_get_channel_size(MicroDrawPixel pixel)
   return 0;
 }
 
-_Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
-               "Updated MicroDrawPixel, should also update micro_draw_color_to_rgba8");
+MICRO_STATIC_ASSERT(_MICRO_DRAW_PIXEL_MAX == 2,
+                    should_also_update_micro_draw_color_to_rgba8);
 MICRO_DRAW_DEF void
 micro_draw_color_to_rgba8(unsigned char* color_src, MicroDrawPixel pixel_src,
                           unsigned char color_dest[4])
@@ -384,8 +389,8 @@ micro_draw_color_to_rgba8(unsigned char* color_src, MicroDrawPixel pixel_src,
   }
 }
 
-_Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
-               "Updated MicroDrawPixel, should also update micro_draw_color_from_rgba8");
+MICRO_STATIC_ASSERT(_MICRO_DRAW_PIXEL_MAX == 2,
+                    should_also_update_micro_draw_color_from_rgba8);
 MICRO_DRAW_DEF void
 micro_draw_color_from_rgba8(unsigned char color_src[4],
                             unsigned char *color_dest, MicroDrawPixel pixel_dest)
@@ -520,8 +525,8 @@ micro_draw_clear(MicroDrawCanvas *canvas,
       micro_draw_pixel(canvas, (Vec2) { .x = col, .y = row }, color);
 }
 
-_Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
-               "MicroDrawPixel has changed, make sure that color_dest in micro_draw_overlap is enough");
+MICRO_STATIC_ASSERT(_MICRO_DRAW_PIXEL_MAX == 2,
+                    make_sure_that_color_dest_in_micro_draw_overlap_is_enough);
 MICRO_DRAW_DEF void
 micro_draw_overlap(MicroDrawCanvas *src_canvas,
                    MicroDrawCanvas *dest_canvas,
@@ -711,8 +716,8 @@ micro_draw_get_color(MicroDrawCanvas *canvas,
   return;
 }
 
-_Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
-               "MicroDrawPixel has changed, make sure that color_dest in micro_draw_scaled is enough");
+MICRO_STATIC_ASSERT(_MICRO_DRAW_PIXEL_MAX == 2,
+                    make_sure_that_color_dest_in_micro_draw_scaled_is_enough);
 MICRO_DRAW_DEF void
 micro_draw_scaled(MicroDrawCanvas *src_canvas,
                   MicroDrawCanvas *dest_canvas)
@@ -777,8 +782,8 @@ static inline int _micro_draw_strlen(char* str)
   return len;
 }
 
-_Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
-               "MicroDrawPixel has changed, make sure that color_dest in micro_draw_text is enough");
+MICRO_STATIC_ASSERT(_MICRO_DRAW_PIXEL_MAX == 2,
+                    make_sure_that_color_dest_in_micro_draw_text_is_enough);
 MICRO_DRAW_DEF void
 micro_draw_text(MicroDrawCanvas *canvas,
                 MicroDrawText text,
@@ -852,8 +857,8 @@ micro_draw_text(MicroDrawCanvas *canvas,
 //
 // The rest of the file contains WIDHT*HEIGHT color values less then
 // MAX_COLOR_VALUE.
-_Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
-               "Updated MicroDrawPixel, should also update micro_draw_to_ppm");
+MICRO_STATIC_ASSERT(_MICRO_DRAW_PIXEL_MAX == 2,
+                    should_also_update_micro_draw_to_ppm);
 MICRO_DRAW_DEF MicroDrawError
 micro_draw_to_ppm(const char *filename, MicrDrawCanvas *canvas)
 {
@@ -925,8 +930,8 @@ typedef enum {
   _MICRO_DRAW_P6,
 } _MicroDrawPPMType;
 
-_Static_assert(_MICRO_DRAW_PIXEL_MAX == 2,
-               "Updated MicroDrawPixel, should also update micro_from_to_ppm");
+MICRO_STATIC_ASSERT(_MICRO_DRAW_PIXEL_MAX == 2,
+                    should_also_update_micro_from_to_ppm);
 MICRO_DRAW_DEF MicroDrawError
 micro_draw_from_ppm(const char* filename, MicroDrawCanvas **canvas)
 {
