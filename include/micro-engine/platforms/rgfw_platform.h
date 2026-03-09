@@ -29,7 +29,6 @@ static struct timeval _rgfw_time;
 
 static bool rgfw_platform_init(const char* title, int width, int height)
 {
-  RGFW_init();
   _rgfw_window = RGFW_createWindow(title, 0, 0, width, height, 0);
 
   unsigned char* data = RGFW_alloc(width * height * 4);
@@ -45,7 +44,6 @@ static bool rgfw_platform_terminate(void)
   if (_rgfw_window)
     RGFW_window_close(_rgfw_window);
 
-  RGFW_deinit();
   return true;
 }
 

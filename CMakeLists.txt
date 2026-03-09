@@ -98,6 +98,7 @@ endfunction()
 if (MICRO_ENGINE_BUILD_EXAMPLES)
   add_example(sdl3_demo)
   add_example(rgfw_demo)
+  add_example(app_example)
 endif()
 
 #
