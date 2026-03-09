@@ -82,7 +82,7 @@ function(add_example NAME)
   target_include_directories(${NAME} PRIVATE
     ${MICRO_ENGINE_INCLUDE_DIRS})
   target_link_libraries(${NAME} PRIVATE
-    ${MICRO_ENGINE_LINK_LIBS})
+    ${MICRO_ENGINE_LINK_LIBS} SDL3)
   target_compile_options(${NAME} PRIVATE
     ${MICRO_ENGINE_COMPILE_OPTIONS})
 endfunction()
