@@ -21,7 +21,8 @@ extern MicroPlatform sdl3_platform;
 
 #include <assert.h>
 
-static SDL_Window* _sdl_window = NULL;
+static SDL_Window*  _sdl_window   = NULL;
+static SDL_Surface* _sdl_surface  = NULL;
 
 static bool sdl3_platform_init(const char* title, int width, int height)
 {
@@ -32,11 +33,17 @@ static bool sdl3_platform_init(const char* title, int width, int height)
   if (!_sdl_window)
     return false;
 
+  _sdl_surface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGBA32);
+  if (!_sdl_surface)
+    return false;
+
   return true;
 }
 
 static bool sdl3_platform_terminate(void)
 {
+  if (_sdl_surface)
+    SDL_DestroySurface(_sdl_surface);
   if (_sdl_window)
     SDL_DestroyWindow(_sdl_window);
   
@@ -52,14 +59,18 @@ static void sdl3_pool_events(void)
 
 static void sdl3_platform_draw_frame(unsigned char* data, int width, int height)
 {
-  if (!_sdl_window) return;
+  if (!_sdl_window || !_sdl_surface) return;
   
-  SDL_Surface *surface = SDL_GetWindowSurface(_sdl_window);
-  assert(surface->format == SDL_PIXELFORMAT_RGBA8888);
-  assert(surface->w * surface->h == width * height);
-  
-  memcpy(surface->pixels, data, width * height * 4);
+  assert(_sdl_surface->format == SDL_PIXELFORMAT_RGBA32);
+  assert(_sdl_surface->pitch == 4 * width);
+  assert(_sdl_surface->w * _sdl_surface->h == width * height);
 
+  SDL_LockSurface(_sdl_surface);
+  memcpy(_sdl_surface->pixels, data, width * height * 4);
+  SDL_UnlockSurface(_sdl_surface);
+
+  SDL_Surface *win_surface = SDL_GetWindowSurface(_sdl_window);
+  SDL_BlitSurface(_sdl_surface, NULL, win_surface, NULL);
   SDL_UpdateWindowSurface(_sdl_window);
   return;
 }

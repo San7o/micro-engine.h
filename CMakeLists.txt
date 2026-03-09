@@ -33,12 +33,12 @@ elseif(MINGW)
   set(WARNING_FLAGS -Wall -Wextra -Wpedantic)
   set(DEBUG_FLAGS -O0 -ggdb)
   set(RELEASE_FLAGS -O3)
-  set(DEBUG_DEFINES DEBUG)
+  set(DEBUG_DEFINES _DEBUG)
 else()
   set(WARNING_FLAGS -Wall -Wextra -Werror -Wpedantic)
   set(DEBUG_FLAGS -O0 -ggdb -fsanitize=address)
   set(RELEASE_FLAGS -O3)
-  set(DEBUG_DEFINES DEBUG)
+  set(DEBUG_DEFINES _DEBUG)
   set(DEBUG_LINK_FLAGS -fsanitize=address)
 endif()
 
@@ -55,15 +55,19 @@ endif()
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  message(STATUS "Configuring Debug build options...")
+
+  set(MICRO_ENGINE_COMPILE_DEFINES ${DEBUG_DEFINES})
+  set(MICRO_ENGINE_COMPILE_OPTIONS ${DEBUG_FLAGS} ${WARNING_FLAGS})
+  if (NOT MSVC)
+    set(MICRO_ENGINE_LINK_OPTIONS ${DEBUG_LINK_FLAGS})
+  endif()
+  
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+  message(STATUS "Configuring Release build options...")
   set(MICRO_ENGINE_COMPILE_OPTIONS
-    ${WARNING_FLAGS}
-    ${DEBUG_FLAGS}
-    ${DEBUG_DEFINES}
-    ${DEBUG_LINK_FLAGS})
-else()
-  set(MICRO_ENGINE_COMPILE_OPTIONS
-    ${WARNING_FLAGS}
-    ${RELEASE_FLAGS})
+    ${RELEASE_FLAGS}
+    ${WARNING_FLAGS})
 endif()
 
 #
@@ -81,10 +85,14 @@ function(add_example NAME)
     ${PROJECT_SOURCE_DIR}/examples/${NAME}.c)
   target_include_directories(${NAME} PRIVATE
     ${MICRO_ENGINE_INCLUDE_DIRS})
+  target_compile_definitions(${NAME} PRIVATE
+    ${MICRO_ENGINE_DEBUG_DEFINES})
   target_link_libraries(${NAME} PRIVATE
     ${MICRO_ENGINE_LINK_LIBS} SDL3)
   target_compile_options(${NAME} PRIVATE
     ${MICRO_ENGINE_COMPILE_OPTIONS})
+  target_link_options(${NAME} PRIVATE
+      ${MICRO_ENGINE_LINK_OPTIONS})
 endfunction()
 
 if (MICRO_ENGINE_BUILD_EXAMPLES)

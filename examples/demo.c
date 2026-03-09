@@ -23,8 +23,8 @@ int main(void)
   MicroDrawCanvas canvas = {0};
   micro_draw_canvas_init(&canvas, WIDTH, HEIGHT, MICRO_DRAW_RGBA8);
 
-  unsigned char white[4] = {255, 255, 255, 255};
-  unsigned char black[4] = {0, 0, 0, 255};
+  unsigned char red[4]  = {255, 0, 0, 255};
+  unsigned char blue[4] = {0, 0, 255, 255};
   MicroDrawText hello_text = {
     .text  = "hello, micro-engine!",
     .x     = 10,
@@ -49,16 +49,16 @@ int main(void)
     time = sdl3_platform.get_ticks_ms();
     unsigned long int delta = time - prev_time;
     prev_time = time;
-    char fps_str[10] = {0};
-    sprintf(fps_str, "fps %.2f", 1.0 / (delta / 1000.0));
+    char fps_str[20] = {0};
+    sprintf(fps_str, "FPS: %.2f", 1.0 / (delta / 1000.0));
     fps_text.text = &fps_str[0];
     
-    micro_draw_clear(&canvas, white);
-    micro_draw_text(&canvas, hello_text, black);
-    micro_draw_text(&canvas, fps_text, black);
+    micro_draw_clear(&canvas, blue);
+    micro_draw_text(&canvas, hello_text, red);
+    micro_draw_text(&canvas, fps_text, red);
 
     sdl3_platform.draw_frame(canvas.data, canvas.width, canvas.height);
-    sdl3_platform.sleep_ms(16);
+    //sdl3_platform.sleep_ms(16);
 	}
 
   micro_draw_canvas_free(&canvas);
