@@ -86,7 +86,7 @@ static unsigned long int sdl3_platform_get_ticks_ms(void)
   return SDL_GetTicks();
 }
 
-SDL_Scancode _micro_key_to_sdl_scancode(MicroKey key)
+static SDL_Scancode _micro_key_to_sdl_scancode(MicroKey key)
 {
   switch (key)
   {

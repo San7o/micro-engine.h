@@ -96,7 +96,8 @@ function(add_example NAME)
 endfunction()
 
 if (MICRO_ENGINE_BUILD_EXAMPLES)
-  add_example(demo)
+  add_example(sdl3_demo)
+  add_example(rgfw_demo)
 endif()
 
 #
