@@ -24,8 +24,15 @@ extern MicroPlatform sdl3_platform;
 static SDL_Window*  _sdl_window   = NULL;
 static SDL_Surface* _sdl_surface  = NULL;
 
+#ifndef MICRO_ENGINE_MEMORY_SIZE
+  #define MICRO_ENGINE_MEMORY_SIZE (5 * 1024 * 1024)
+#endif
+char memory[MICRO_ENGINE_MEMORY_SIZE] = {0};
+
 static bool sdl3_platform_init(const char* title, int width, int height)
 {
+  micro_arena_ginit(&memory[0], MICRO_ENGINE_MEMORY_SIZE);
+
   if (!SDL_Init(SDL_INIT_VIDEO))
     return false;
 

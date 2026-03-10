@@ -195,6 +195,17 @@ extern "C" {
   #define MICRO_LOG_DEF extern
 #endif
 
+// Config: Function to allocate memory
+#ifndef MICRO_LOG_MALLOC
+  #define MICRO_LOG_MALLOC malloc
+#endif
+
+// Config: Function to deallocate memory
+#ifndef MICRO_LOG_FREE
+  #define MICRO_LOG_FREE free
+#endif
+
+  
 //
 // Errors
 //
@@ -891,7 +902,7 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
         micro_log_set_level2(micro_log, MICRO_LOG_LEVEL_DISABLED);
       } else {
         error = MICRO_LOG_ERROR_UNKNOWN_LEVEL;
-        free(line);
+        MICRO_LOG_FREE(line);
         goto done;
       }
     }
@@ -949,7 +960,7 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
         }
         else {
           error = MICRO_LOG_ERROR_UNKNOWN_FLAG;
-          free(line);
+          MICRO_LOG_FREE(line);
           goto done;
         }
 
@@ -957,7 +968,7 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
         pos += _micro_log_get_spaces(line + pos, len - pos);
       }
       error = micro_log_set_flags2(micro_log, flags);
-      if (error != MICRO_LOG_OK) { free(line); goto done; }
+      if (error != MICRO_LOG_OK) { MICRO_LOG_FREE(line); goto done; }
     }
     else if (strncmp(line, "file:", 5) == 0)
     {
@@ -970,7 +981,7 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
       }
       
       error = micro_log_set_file2(micro_log, line + pos);
-      if (error != MICRO_LOG_OK) { free(line); goto done; }
+      if (error != MICRO_LOG_OK) { MICRO_LOG_FREE(line); goto done; }
     }
     #ifdef MICRO_LOG_SOCKETS
     else if (strncmp(line, "inet:", 5) == 0)
@@ -985,11 +996,11 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
       if (addr_len == 0)
       {
         error = MICRO_LOG_ERROR_INVALID_INET_ADDR;
-        free(line);
+        MICRO_LOG_FREE(line);
         goto done;
       }
 
-      addr = malloc(addr_len + 1);
+      addr = MICRO_LOG_MALLOC(addr_len + 1);
       strncpy(addr, line + pos, addr_len);
       addr[addr_len] = '\0';
       
@@ -1000,11 +1011,11 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
       if (port_len == 0)
       {
         error = MICRO_LOG_ERROR_INVALID_PORT;
-        free(line); free(addr);
+        MICRO_LOG_FREE(line); MICRO_LOG_FREE(addr);
         goto done;
       }
 
-      char *port_str = malloc(port_len + 1);
+      char *port_str = MICRO_LOG_MALLOC(port_len + 1);
       strncpy(port_str, line + pos, port_len);
       port_str[port_len] = '\0';
 
@@ -1012,11 +1023,13 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
       if (port_len == 0)
       {
         error = MICRO_LOG_ERROR_INVALID_PORT;
-        free(port_str); free(line); free(addr);
+        MICRO_LOG_FREE(port_str);
+        MICRO_lOG_FREE(line);
+        MICRO_LOG_FREE(addr);
         goto done;
       }
       
-      free(port_str);
+      MICRO_LOG_FREE(port_str);
       pos += port_len;
 
       pos += _micro_log_get_spaces(line + pos, len - pos);
@@ -1024,7 +1037,7 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
       if (proto_len == 0)
       {
         error = MICRO_LOG_ERROR_INVALID_PROTOCOL;
-        free(line); free(addr);
+        MICRO_LOG_FREE(line); MICRO_LOG_FREE(addr);
         goto done;
       }
 
@@ -1038,32 +1051,37 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
       }
       else {
         error = MICRO_LOG_ERROR_INVALID_PROTOCOL;
-        free(line); free(addr);
+        MICRO_LOG_FREE(line); MICRO_LOG_FREE(addr);
         goto done;
       }
       
       error = micro_log_set_socket_inet(addr, port, proto);
-      if (error != MICRO_LOG_OK) { free(line); free(addr); goto done; }
+      if (error != MICRO_LOG_OK)
+      {
+        MICRO_LOG_FREE(line);
+        MICRO_LOG_FREE(addr);
+        goto done;
+      }
       
-      free(addr);
+      MICRO_LOG_FREE(addr);
     }
     #if defined(__unix__) || defined(__unix)
     else if (strncmp(line, "unix:", 5) == 0)
     {
       spaces = _micro_log_get_spaces(line + 5, len - 6);
       error = micro_log_set_socket_unix2(micro_log, line + 5 + spaces);
-      if (error != MICRO_LOG_OK) { free(line); goto done; }
+      if (error != MICRO_LOG_OK) { MICRO_LOG_FREE(line); goto done; }
     }
     #endif // __unix__
     #endif // MICRO_LOG_SOCKETS
     else {
-      free(line);
+      MICRO_LOG_FREE(line);
       error = MICRO_LOG_ERROR_INVALID_FILE_SETTING;
       goto done;
     }
 
     next:
-    free(line);
+    MICRO_LOG_FREE(line);
     line = NULL;
   }
   

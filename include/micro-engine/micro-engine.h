@@ -7,7 +7,7 @@
 // Micro engine
 // ------------
 //
-// Import everything
+// Core engine funtionalities.
 //
 // Define `MICRO_ENGINE_IMPLEMENTATION` for including the
 // implementaion.
@@ -17,30 +17,38 @@
 #define MICRO_ENGINE
 
 #ifdef MICRO_ENGINE_IMPLEMENTATION
+  #define MICRO_ARENA_IMPLEMENTATION
   #define MICRO_LOG_IMPLEMENTATION
   #define MICRO_DRAW_IMPLEMENTATION
-  #define MICRO_FLAG_IMPLEMENTATION
-  #define MICRO_CONF_IMPLEMENTATION
-  #define MICRO_SERDE_IMPLEMENTATION
 
   // External
   #define STB_IMAGE_IMPLEMENTATION
   #define STB_TRUETYPE_IMPLEMENTATION
-
 #endif
 
-#define RGFWDEF
-#define MICRO_LA_IMPLEMENTATION
+//
+// Memory allocation
+//
+
+#define MICRO_ARENA_GLOBAL
+// #define MICRO_ARENA_DEBUG
+#include "micro-arena.h"
+
+#define MICRO_LOG_MALLOC(...)  micro_arena_gmalloc(__VA_ARGS__)
+#define MICRO_LOG_FREE(...)    micro_arena_gfree(__VA_ARGS__)
+#define MICRO_DRAW_MALLOC(...) micro_arena_gmalloc(__VA_ARGS__)
+#define MICRO_DRAW_FREE(...)   micro_arena_gfree(__VA_ARGS__)
+
+#define MICRO_ENGINE_MEMORY_SIZE (5 * 1024 * 1024) // bytes
+
 
 #include "micro-log.h"
+#define MICRO_LA_IMPLEMENTATION
 #include "micro-la.h"
 #include "micro-draw.h"
-#include "micro-flag.h"
-#include "micro-conf.h"
-#include "micro-serde.h"
+#include "micro-platform.h"
 
 // External
-#include "external/RGFW.h"
 #include "external/stb_image.h"
 #include "external/stb_truetype.h"
 

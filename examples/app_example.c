@@ -11,7 +11,6 @@
 #define RGFW_PLATFORM_IMPLEMENTATION
 #include <micro-engine/platforms/rgfw_platform.h>
 
-
 MicroDrawCanvas canvas = {0};
 unsigned char red[4]  = {255, 0, 0, 255};
 unsigned char blue[4] = {0, 0, 255, 255};

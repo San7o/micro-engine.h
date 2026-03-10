@@ -27,8 +27,15 @@ static RGFW_window*   _rgfw_window   = NULL;
 static RGFW_surface*  _rgfw_surface  = NULL;
 static struct timeval _rgfw_time;
 
+#ifndef MICRO_ENGINE_MEMORY_SIZE
+  #define MICRO_ENTINE_MEMORY_SIZE (5 * 1024 * 1024)
+#endif
+char buff[MICRO_ENGINE_MEMORY_SIZE];
+
 static bool rgfw_platform_init(const char* title, int width, int height)
 {
+  micro_arena_ginit(&buff[0], MICRO_ENGINE_MEMORY_SIZE);
+
   _rgfw_window = RGFW_createWindow(title, 0, 0, width, height, 0);
 
   unsigned char* data = RGFW_alloc(width * height * 4);
