@@ -31,15 +31,20 @@
 //
 
 #define MICRO_ARENA_GLOBAL
-// #define MICRO_ARENA_DEBUG
+//#define MICRO_ARENA_DEBUG
 #include "micro-arena.h"
 
 #define MICRO_LOG_MALLOC(...)  micro_arena_gmalloc(__VA_ARGS__)
 #define MICRO_LOG_FREE(...)    micro_arena_gfree(__VA_ARGS__)
 #define MICRO_DRAW_MALLOC(...) micro_arena_gmalloc(__VA_ARGS__)
 #define MICRO_DRAW_FREE(...)   micro_arena_gfree(__VA_ARGS__)
+#define STBI_MALLOC(...)       micro_arena_gmalloc(__VA_ARGS__)
+#define STBI_REALLOC(...)      micro_arena_grealloc(__VA_ARGS__)
+#define STBI_FREE(...)         micro_arena_gfree(__VA_ARGS__)
 
-#define MICRO_ENGINE_MEMORY_SIZE (5 * 1024 * 1024) // bytes
+#ifndef MICRO_ENGINE_MEMORY_SIZE
+  #define MICRO_ENGINE_MEMORY_SIZE (4 * 1024 * 1024) // bytes
+#endif
 
 
 #include "micro-log.h"

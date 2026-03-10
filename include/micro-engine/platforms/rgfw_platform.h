@@ -36,7 +36,8 @@ static bool rgfw_platform_init(const char* title, int width, int height)
 {
   micro_arena_ginit(&buff[0], MICRO_ENGINE_MEMORY_SIZE);
 
-  _rgfw_window = RGFW_createWindow(title, 0, 0, width, height, 0);
+  int flags = RGFW_windowNoResize | RGFW_windowCenter | RGFW_windowFloating;
+  _rgfw_window = RGFW_createWindow(title, 0, 0, width, height, flags);
 
   unsigned char* data = RGFW_alloc(width * height * 4);
   _rgfw_surface = RGFW_window_createSurface(_rgfw_window, data, width,
