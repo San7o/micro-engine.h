@@ -22,7 +22,7 @@ it has no dependencies.
     default)
   - pltform is abstracted in `micro-platform.h`, you need to implement
     just a few functions to port the engine. See
-    [platforms](./include/micro-engine/platforms)
+    [platforms](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine/platforms)
   - no dependencies
   - works everywhere C can compile to
 - modularity: everything can be used as a stand-alone header-only

@@ -121,8 +121,6 @@ bool micro_app_update(float delta_time)
     planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);
   }
 
-  micro_log_info("FPS: %f", (1 / (delta_time / 1000)));
-
   #ifndef __EMSCRIPTEN__
   micro_app_platform.sleep_ms(16);
   #endif
