@@ -25,13 +25,14 @@ it has no dependencies.
     projects
 - simplicity: you have a raw buffer where you can draw pixel to, the
   rest is in your control
+- [microheaders](https://san7o.github.io/micro-headers/) included:
+  - [micro-draw.h](https://github.com/San7o/micro-draw.h)
+  - [micro-log.h](https://github.com/San7o/micro-log.h)
+  - [micro-la.h](https://github.com/San7o/micro-la.h)
+  - [micro-arena.h](https://github.com/San7o/micro-arena.h)
+  - [micro-tests.h](https://github.com/San7o/micro-tests.h)
+  - [micro-serde.h](https://github.com/San7o/micro-serde.h)
+  - [micro-flag.h](https://github.com/San7o/micro-flag.h)
+  - [micro-module.h](https://github.com/San7o/micro-module.h)
+  - [micro-conf.h](https://github.com/San7o/micro-conf.h)
 
-## Motivation
-
-As Brenta grew in complexity, it naturally became more cumbersome to
-quickly design and implement new features and applications. This is a
-fundamental problem of all software, not a fault of my engine. Hence I
-wanted to experiment with a simpler approach. I mean "simple" in its
-most general form: in the abstraction, workflow and implementation.
-
-![](./docs/micro-website/micro-engine-marketing.jpg)

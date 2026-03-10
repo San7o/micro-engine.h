@@ -57,6 +57,8 @@ PANDOC_FLAGS=""
 # Images directory
 IMG_DIR="./"
 
+DEMO_DIR="./demo"
+
 #
 # Generation
 #
@@ -131,5 +133,8 @@ echo -e "\nSitemap: $BASE_URL/sitemap.txt" >> "$HTML_DIR/robots.txt"
 echo "Copying images"
 cp "$IMG_DIR"/*.jpg "$HTML_DIR/"
 
+echo "Copying demo dir"
+mkdir -p "$HTML_DIR/demo"
+cp "$DEMO_DIR"/* "$HTML_DIR/demo"
 
 echo "Done."

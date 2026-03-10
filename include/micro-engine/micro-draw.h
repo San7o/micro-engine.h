@@ -1582,6 +1582,14 @@ micro_draw_font[128][MICRO_DRAW_FONT_HEIGHT][MICRO_DRAW_FONT_WIDTH] = {
     {0, 1, 0, 0, 0},
     {0, 1, 0, 0, 0},
   },
+  ['/'] = {
+    {0, 0, 0, 1, 0},
+    {0, 0, 0, 1, 0},
+    {0, 0, 1, 0, 0},
+    {0, 0, 1, 0, 0},
+    {0, 1, 0, 0, 0},
+    {0, 1, 0, 0, 0},
+  },
 };
 
 #endif // MICRO_DRAW_IMPLEMENTATION

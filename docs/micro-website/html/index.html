@@ -21,9 +21,7 @@
   -->
   
   <body>
-<h1 id="micro-engine">micro-engine</h1>
-<p>Microheaders, assemble!</p>
-<p><img src="./micro-engine-marketing.jpg" /></p>
+<h1 id="micro-engine.h">micro-engine.h</h1>
 <p>micro-engine is an header-only game engine. It is composed of several
 independent headers from the beautiful <a
 href="https://san7o.github.io/micro-headers/">microheaders</a>
@@ -31,17 +29,51 @@ collection.</p>
 <p>Unlike my other game engine, <a
 href="https://san7o.github.io/Brenta-Engine/">Brenta-Engine</a>,
 micro-engine favors absolute simplicity over powerful but complex
-features. micro-engine does not try to compete with Brenta because it is
-designed following a different philosophy. It is written in C99,
-graphics are software rendered with a focus on 2D, and it has no
-dependencies other than X / Wayland for creating a window and alsa for
-playing sound.</p>
-<h2 id="motivation">Motivation</h2>
-<p>As Brenta grew in complexity, it naturally became more cumbersome to
-quickly design and implement new features and applications. This is a
-fundamental problem of all software, not a fault of my engine. I Hence I
-wanted to experiment with a simpler approach. I mean “simple” in its
-most general form: in the abstraction, workflow and implementation.</p>
+features. It is written in C99, graphics are software rendered with a
+focus on 2D, and it has no dependencies.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li>high portability
+<ul>
+<li>plug your custom memory allocator (<code>micro-arena.h</code> is
+used by default)</li>
+<li>pltform is abstracted in <code>micro-platform.h</code>, you need to
+implement just a few functions to port the engine. See <a
+href="./include/micro-engine/platforms">platforms</a></li>
+<li>no dependencies</li>
+<li>works everywhere C can compile to</li>
+</ul></li>
+<li>modularity: everything can be used as a stand-alone header-only
+library, meaning that you can use any part of the engine in your
+projects</li>
+<li>simplicity: you have a raw buffer where you can draw pixel to, the
+rest is in your control</li>
+<li><a href="https://san7o.github.io/micro-headers/">microheaders</a>
+included:
+<ul>
+<li><a
+href="https://github.com/San7o/micro-draw.h">micro-draw.h</a></li>
+<li><a href="https://github.com/San7o/micro-log.h">micro-log.h</a></li>
+<li><a href="https://github.com/San7o/micro-la.h">micro-la.h</a></li>
+<li><a
+href="https://github.com/San7o/micro-arena.h">micro-arena.h</a></li>
+<li><a
+href="https://github.com/San7o/micro-tests.h">micro-tests.h</a></li>
+<li><a
+href="https://github.com/San7o/micro-serde.h">micro-serde.h</a></li>
+<li><a
+href="https://github.com/San7o/micro-flag.h">micro-flag.h</a></li>
+<li><a
+href="https://github.com/San7o/micro-module.h">micro-module.h</a></li>
+<li><a
+href="https://github.com/San7o/micro-conf.h">micro-conf.h</a></li>
+</ul></li>
+</ul>
+
+<h2>Demo</h2>
+
+<canvas height=500 id=canvas width=500></canvas><script async src=demo/raycaster.js></script>
+
 <hr>
 
 <footer>
