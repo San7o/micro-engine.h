@@ -45,8 +45,6 @@ bool micro_app_setup(void)
 
 bool micro_app_update(float delta_time)
 {
-  (void) delta_time;
-
   if (micro_app_platform.get_key(MICRO_KEY_ESCAPE))
     return false;
   
@@ -58,7 +56,6 @@ bool micro_app_update(float delta_time)
 
 bool micro_app_draw(void)
 {
-  
   micro_draw_clear(&canvas, blue);
   micro_draw_text(&canvas, hello_text, red);
   micro_draw_text(&canvas, fps_text, red);

@@ -28,9 +28,13 @@ bool micro_app_setup(void)
   micro_draw_canvas_init(&canvas, width, height, MICRO_DRAW_RGBA8);
 
   int x,y,n;
-  unsigned char *data =
-    stbi_load("docs/micro-website/micro-engine-marketing.jpg", &x, &y, &n, 4);
-  if (!data) return false;
+  const char* img_path = "utils/micro-engine-marketing.jpg";
+  unsigned char *data = stbi_load(img_path, &x, &y, &n, 4);
+  if (!data)
+  {
+    micro_log_error("Error opening image: %s", img_path);
+    return false;
+  }
 
   micro_log_info("image info: x: %d, y: %d, n: %d", x, y, n);
 

@@ -1,0 +1,103 @@
+// SPDX-License-Identifier: MIT
+//
+// fft.h
+// =====
+//
+// Implementation of DFT and FFT in C99.
+//
+// Author:  Giovanni Santini
+// Mail:    giovanni.santini@proton.me
+// License: MIT
+//
+
+#ifndef MICRO_FFT_H
+#define MICRO_FFT_H
+
+//
+// Api
+//
+
+// Calculates the Discrete Furier Transform of [in_frames], saved in
+// [out_frequencies]
+void micro_dft(const float* in_frames,
+               float *out_frequencies,
+               unsigned int n_frames);
+
+// The Fast Furier Transform of [in_frames], saved in [out_frequencies]
+void micro_fft(const float* in_frames,
+               float *out_frequencies,
+               unsigned int window);
+
+//
+// Implementation
+//
+  
+#ifdef MICRO_FFT_IMPLEMENTATION
+
+#include <complex.h>
+
+#ifndef PI
+#define PI      3.14159265358979323846264f
+#endif
+
+void micro_dft(const float* in_frames, float *out_frequencies,
+               unsigned int n_frames)
+{
+  // Calculate all frequency values in [out_frequencies] The number of
+  // frequencies the the same as the number of discrete points
+  // (frames) since we don't have enough information to calculate
+  // more.
+  for (unsigned int freq = 0; freq < n_frames; ++freq)
+  {
+    // A single frequency value represents how much that frequency
+    // contributes to the overall mixed frequency (the input). To
+    // calculate this, we multiply this frequency by the input for
+    // each point, then we sum them up. This is done with different
+    // offsets (sine and cosine) otherwise some information may be
+    // never picked up (for example, if the input is a sine, and our
+    // selected frequency is a cosine, the sum of their prducts will
+    // always be zero and we don't get much information).
+    out_frequencies[freq] = 0;
+    for (unsigned int frame = 0; frame < n_frames; ++frame)
+    {
+      float t = (float) frame / n_frames;
+      // Remember Euler's Formula
+      //     e^{ix} = cos(x) + i * sin(x)
+      // Using imaginary number is just a shortcut to encode information
+      // for both sine and cosine.
+      out_frequencies[freq] += in_frames[frame] * cexpf(-2 * I * PI * freq * t);
+    }
+  }
+  return;
+}
+
+void micro_fft(const float* in_frames, float *out_frequencies,
+               unsigned int window)
+{
+  // Base case
+  if (window <= 1)
+    return;
+
+  // Split
+  float even[window / 2], odd[window / 2];
+  for (unsigned int i = 0; i < window / 2; i++)
+  {
+    even[i] = in_frames[i * 2];
+    odd[i] = in_frames[i * 2 + 1];
+  }
+  micro_fft(even, out_frequencies, window / 2);
+  micro_fft(odd, out_frequencies,  window / 2);
+
+  // Combine
+  for (unsigned int i = 0; i < window / 2; ++i)
+  {
+    complex float twiddle = cexp(-2.0 * I * PI * (float)i / (float)window) * odd[i];
+    out_frequencies[i] = even[i] + twiddle;
+    out_frequencies[i + window / 2] = even[i] - twiddle;
+  }
+  return;
+}
+
+#endif // MICRO_FFT_IMPLEMENTATION
+
+#endif // MICRO_FFT_H

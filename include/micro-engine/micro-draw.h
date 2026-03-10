@@ -157,6 +157,7 @@ typedef struct {
   int r;
 } Circle;
 
+// Vertexes are in clockwise order
 typedef struct {
   int a_x; int a_y;
   int b_x; int b_y;
