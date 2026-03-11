@@ -9,10 +9,10 @@
 #include "micro-key.h"
 #include "micro-types.h"
 
-typedef enum MicroFileMode {
-  MICRO_FILE_MODE_READ,
-  MICRO_FILE_MODE_WRITE,
-} MicroFileMode;
+#define MICRO_FILE_MODE_READ   0
+#define MICRO_FILE_MODE_WRITE  1
+
+typedef int MicroFileMode;
 
 typedef struct MicroPlatform {
   
@@ -25,11 +25,11 @@ typedef struct MicroPlatform {
   bool (*get_key)(MicroKey key);
 
   // I/O
-  void (*print)(const char* msg);
+  int (*print)(const char* msg);
   void (*draw_frame)(unsigned char* data, int width, int height);
   // File I/O
   void* (*open)(const char* path, MicroFileMode mode);
-  void  (*close)(void* handle);
+  bool  (*close)(void* handle);
   size_t (*read)(void* handle, void* buffer, size_t size);
   size_t (*write)(void* handle, void* buffer, size_t size);
   

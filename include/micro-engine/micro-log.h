@@ -150,10 +150,6 @@
 extern "C" {
 #endif
 
-#ifndef _POSIX_C_SOURCE
-  #define _POSIX_C_SOURCE 200809L // dprintf, vdprintf (UNIX)
-#endif
-
 //
 // Configuration
 //
@@ -186,6 +182,11 @@ extern "C" {
 #ifndef MICRO_LOG_LEVEL_DEF
   #define MICRO_LOG_LEVEL_DEF MICRO_LOG_LEVEL_TRACE
 #endif
+
+// Config: maximum size of a log string
+#ifndef MICRO_LOG_MAX_STRING_SIZE
+  #define MICRO_LOG_MAX_STRING_SIZE 1024
+#endif
   
 // Config: Prefix for all functions
 // For function inlining, set this to `static inline` and then define
@@ -195,16 +196,49 @@ extern "C" {
   #define MICRO_LOG_DEF extern
 #endif
 
-// Config: Function to allocate memory
+// Config: Support date and time printing (includes time.h)
+#if 0
+  #define MICRO_LOG_DATE_TIME
+#endif
+  
+// Config: Support PID and TID printing (includes pthread.h)
+#if 0
+  #define MICRO_LOG_PID
+#endif
+  
+// Config: Memory functions
 #ifndef MICRO_LOG_MALLOC
   #define MICRO_LOG_MALLOC malloc
 #endif
-
-// Config: Function to deallocate memory
 #ifndef MICRO_LOG_FREE
   #define MICRO_LOG_FREE free
 #endif
+#ifndef MICRO_LOG_REALLOC
+  #define MICRO_LOG_REALLOC realloc
+#endif
 
+// I/O operations
+#ifndef MICRO_LOG_FOPEN
+  #include <stdio.h>
+  #define MICRO_LOG_FOPEN fopen
+  #define MICRO_FILE_MODE_READ "r"
+  #define MICRO_FILE_MODE_WRITE "w+"
+#endif
+#ifndef MICRO_LOG_FCLOSE
+  #define MICRO_LOG_FCLOSE fclose
+#endif
+#ifndef MICRO_LOG_FREAD
+  #define MICRO_LOG_FREAD fread
+#endif
+#ifndef MICRO_LOG_FWRITE
+  #define MICRO_LOG_FWRITE fwrite
+#endif
+#ifndef MICRO_LOG_FLUSH
+  #define MICRO_LOG_FLUSH(...) true
+#endif
+#ifndef MICRO_LOG_OUT
+  #define MICRO_LOG_OUT printf
+#endif
   
 //
 // Errors
@@ -257,11 +291,24 @@ extern "C" {
   #endif
   #include <pthread.h>
 #endif
+#ifndef size_t
+  #define size_t long unsigned int
+#endif
+#ifndef true
+  #define true  1
+#endif
+#ifndef false
+  #define false 0
+#endif
+#ifndef bool
+  #define bool _Bool;
+#endif
+#ifndef NULL
+  #define NULL ((void*) 0)
+#endif
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdbool.h>
-  
+typedef __builtin_va_list _micro_log_va_list;
+
 #define MICRO_LOG_FLAG_NONE  (0)
 #define MICRO_LOG_FLAG_LEVEL (1 << 0)
 #define MICRO_LOG_FLAG_DATE  (1 << 1)
@@ -436,7 +483,7 @@ typedef struct {
   // Default value is MICRO_LOG_LEVEL_TRACE
   MicroLogLevel log_level;
   // (optional) Pointer to output file
-  FILE *file;
+  void *file;
   #ifdef MICRO_LOG_SOCKETS
   // (optional) Socket file descriptor
   int inet_sock_fd;
@@ -591,7 +638,7 @@ micro_log_set_socket_unix2(MicroLog *micro_log,
 // it needs a definition in every translation unit to be inlined
 static inline int micro_log_disabled(void)
 {
-    return MICRO_LOG_OK;
+  return MICRO_LOG_OK;
 }
   
 // Get a string of a certain log level, with an optional color
@@ -618,25 +665,30 @@ _micro_log_print_outputs(MicroLog *micro_log,
 MICRO_LOG_DEF micro_log_error
 _micro_log_print_outputs_args(MicroLog *micro_log,
                               const char* fmt,
-                              va_list args);
+                              _micro_log_va_list args);
 //
 // Implementation
 //
 
 #ifdef MICRO_LOG_IMPLEMENTATION
 
+#ifdef MICRO_LOG_DATE_TIME
+  #include <time.h>
+#endif
+
+#ifdef MICRO_LOG_PID
+  #include <pthread.h>
+#endif
+
 #ifndef MICRO_STATIC_ASSERT
 #define MICRO_STATIC_ASSERT(cond, msg)                  \
   typedef char static_assertion_##msg##__LINE__[(cond) ? 1 : -1]
 #endif
 
-#define _GNU_SOURCE
-#include <unistd.h>
-#include <time.h>
-#include <pthread.h>
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
+#define _micro_log_va_start(v, l)  __builtin_va_start(v, l)
+#define _micro_log_va_end(v)      __builtin_va_end(v)
+#define _micro_log_va_arg(v, l)    __builtin_va_arg(v, l)
+#define _micro_log_va_copy(d, s)   __builtin_va_copy(d, s)
 
 #ifdef MICRO_LOG_SOCKETS
   #ifdef _WIN32
@@ -645,8 +697,8 @@ _micro_log_print_outputs_args(MicroLog *micro_log,
     #include <ws2tcpip.h>
     #define close_socket(s) closesocket(s)
     #pragma comment(lib, "ws2_32.lib")  // link against Winsock library
-    #define dprintf(...) assert(false); // TODO
-    #define vdprintf(...) assert(false); // TODO
+    #define dprintf(...) ; // TODO
+    #define vdprintf(...) ; // TODO
     #error "TODO Support for windows internet sockets"
   #else
     // POSIX (Linux, macOS, BSD, etc.)
@@ -795,38 +847,76 @@ MICRO_LOG_DEF int _micro_log_get_word_len(char* str, int max)
   return letters;
 }
 
-static ssize_t _micro_log_getline(char  **lineptr,
-                                  size_t *n,
-                                  FILE   *stream)
+typedef struct {
+    void* handle;      // The file handle from micro_platform.open
+    char  buffer[512]; // Internal buffer to minimize syscalls
+    int   pos;         // Current position in buffer
+    int   size;        // Actual bytes currently in buffer
+    bool  eof;
+} MicroStream;
+
+// A minimal replacement for fgetc/getline logic
+static int _micro_log_getc(MicroStream* stream)
 {
-  if (lineptr == NULL || n == NULL || stream == NULL)
-    return -1;
-  
-  size_t len = 0;
-  int c;
-  long pos = ftell(stream);
-  if (pos == -1)
-    return -1;
-  
-  while((c = fgetc(stream)) != EOF)
+  if (stream->pos >= stream->size)
   {
-    len++;
-    if (c == '\n')
-      break;
+    if (stream->eof) return -1;
+        
+    // Use your platform abstraction
+    int bytes = MICRO_LOG_FREAD(stream->buffer,
+                                1,
+                                sizeof(stream->buffer),
+                                stream->handle);
+    if (bytes <= 0)
+    {
+      stream->eof = true;
+      return -1;
+    }
+    stream->size = bytes;
+    stream->pos = 0;
+  }
+  return (unsigned char)stream->buffer[stream->pos++];
+}
+
+static size_t _micro_log_getline(char** lineptr, size_t* n, MicroStream* stream)
+{
+  size_t capacity = (*n > 0) ? *n : 128;
+  if (*lineptr == NULL) *lineptr = MICRO_LOG_REALLOC(NULL, capacity);
+  
+  size_t count = 0;
+  int c;
+
+  while ((c = _micro_log_getc(stream)) != -1)
+  {
+    // Ensure space for char + null terminator
+    if (count + 1 >= capacity)
+    {
+      capacity *= 2;
+      char* new_buf = MICRO_LOG_REALLOC(*lineptr, capacity);
+      if (!new_buf) return -1;
+      *lineptr = new_buf;
+      *n = capacity;
+    }
+    
+    (*lineptr)[count++] = (char)c;
+    if (c == '\n') break;
   }
 
-  if (c == EOF && len == 0)
-    return -1;
-
-  char *buff = realloc(*lineptr, len + 1);
-  if (!buff)
-    return -1;
-  *lineptr = buff;
-  fseek(stream, pos, SEEK_SET);
-  size_t bytes_read = fread(*lineptr, 1, len, stream);
-  (*lineptr)[bytes_read] = '\0';
-  *n = bytes_read;
-  return bytes_read;
+  if (count == 0) return -1;
+  (*lineptr)[count] = '\0';
+  return count;
+}
+  
+static inline int _micro_log_strncmp(const char *s1, const char *s2, size_t n)
+{
+  while (*s1 == *s2 && n > 0) {
+    s1++;
+    s2++;
+    n--;
+  }
+  if (*s2 == '\0')
+    return 0;
+  return 1;
 }
 
 MICRO_LOG_DEF micro_log_error
@@ -839,10 +929,10 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
 
   micro_log_error error = MICRO_LOG_OK;
   
-  FILE* file = fopen(filename, "r");
+  void* file = MICRO_LOG_FOPEN(filename, MICRO_FILE_MODE_READ);
   if (file == NULL)
   {
-    perror("Error opening file");
+    MICRO_LOG_OUT("Error opening file");
     error = MICRO_LOG_ERROR_OPEN_FILE;
     goto done;
   }
@@ -857,47 +947,47 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
   // # A comment
   //
   char *line = NULL;
-  size_t len;
+  size_t len = 0;
   int spaces;
-  while(_micro_log_getline(&line, &len, file) >= 0)
+  while(_micro_log_getline(&line, &len, file) > 0)
   {
-    if (strncmp(line, "#", 1) == 0)
+    if (_micro_log_strncmp(line, "#", 1) == 0)
     {
       goto next;
     }
-    if (strncmp(line, "\n", 1) == 0)
+    if (_micro_log_strncmp(line, "\n", 1) == 0)
     {
       goto next;
     }
-    if (strncmp(line, "level:", 6) == 0)
+    if (_micro_log_strncmp(line, "level:", 6) == 0)
     {
       spaces = _micro_log_get_spaces(line + 6, len - 6);
       
-      if (strncmp(line + 6 + spaces, "trace", 5) == 0)
+      if (_micro_log_strncmp(line + 6 + spaces, "trace", 5) == 0)
       {
         micro_log_set_level2(micro_log, MICRO_LOG_LEVEL_TRACE);
       }
-      else if (strncmp(line + 6 + spaces, "debug", 5) == 0)
+      else if (_micro_log_strncmp(line + 6 + spaces, "debug", 5) == 0)
       {
         micro_log_set_level2(micro_log, MICRO_LOG_LEVEL_DEBUG);
       }
-      else if (strncmp(line + 6 + spaces, "info", 4) == 0)
+      else if (_micro_log_strncmp(line + 6 + spaces, "info", 4) == 0)
       {
         micro_log_set_level2(micro_log, MICRO_LOG_LEVEL_INFO);
       }
-      else if (strncmp(line + 6 + spaces, "warn", 4) == 0)
+      else if (_micro_log_strncmp(line + 6 + spaces, "warn", 4) == 0)
       {
         micro_log_set_level2(micro_log, MICRO_LOG_LEVEL_WARN);
       }
-      else if (strncmp(line + 6 + spaces, "error", 5) == 0)
+      else if (_micro_log_strncmp(line + 6 + spaces, "error", 5) == 0)
       {
         micro_log_set_level2(micro_log, MICRO_LOG_LEVEL_ERROR);
       }
-      else if (strncmp(line + 6 + spaces, "fatal", 5) == 0)
+      else if (_micro_log_strncmp(line + 6 + spaces, "fatal", 5) == 0)
       {
         micro_log_set_level2(micro_log, MICRO_LOG_LEVEL_FATAL);
       }
-      else if (strncmp(line + 6 + spaces, "disabled", 8) == 0)
+      else if (_micro_log_strncmp(line + 6 + spaces, "disabled", 8) == 0)
       {
         micro_log_set_level2(micro_log, MICRO_LOG_LEVEL_DISABLED);
       } else {
@@ -906,54 +996,54 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
         goto done;
       }
     }
-    else if (strncmp(line, "flags:", 6) == 0)
+    else if (_micro_log_strncmp(line, "flags:", 6) == 0)
     {
       size_t pos = 6;
       long unsigned int flags = 0;
       pos += _micro_log_get_spaces(line + 6, len - 6);
       while (pos <= len)
       {
-        if (strncmp(line + pos, "level", 5) == 0)
+        if (_micro_log_strncmp(line + pos, "level", 5) == 0)
         {
           flags |= MICRO_LOG_FLAG_LEVEL;
           pos += 5;
         }
-        else if (strncmp(line + pos, "date", 4) == 0)
+        else if (_micro_log_strncmp(line + pos, "date", 4) == 0)
         {
           flags |= MICRO_LOG_FLAG_DATE;
           pos += 4;
         }
-        else if (strncmp(line + pos, "time", 4) == 0)
+        else if (_micro_log_strncmp(line + pos, "time", 4) == 0)
         {
           flags |= MICRO_LOG_FLAG_TIME;
           pos += 4;
         }
-        else if (strncmp(line + pos, "pid", 3) == 0)
+        else if (_micro_log_strncmp(line + pos, "pid", 3) == 0)
         {
           flags |= MICRO_LOG_FLAG_PID;
           pos += 3;
         }
-        else if (strncmp(line + pos, "tid", 3) == 0)
+        else if (_micro_log_strncmp(line + pos, "tid", 3) == 0)
         {
           flags |= MICRO_LOG_FLAG_TID;
           pos += 3;
         }
-        else if (strncmp(line + pos, "json", 4) == 0)
+        else if (_micro_log_strncmp(line + pos, "json", 4) == 0)
         {
           flags |= MICRO_LOG_FLAG_JSON;
           pos += 4;
         }
-        else if (strncmp(line + pos, "color", 5) == 0)
+        else if (_micro_log_strncmp(line + pos, "color", 5) == 0)
         {
           flags |= MICRO_LOG_FLAG_COLOR;
           pos += 5;
         }
-        else if (strncmp(line + pos, "file", 4) == 0)
+        else if (_micro_log_strncmp(line + pos, "file", 4) == 0)
         {
           flags |= MICRO_LOG_FLAG_FILE;
           pos += 4;
         }
-        else if (strncmp(line + pos, "line", 4) == 0)
+        else if (_micro_log_strncmp(line + pos, "line", 4) == 0)
         {
           flags |= MICRO_LOG_FLAG_LINE;
           pos += 4;
@@ -970,7 +1060,7 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
       error = micro_log_set_flags2(micro_log, flags);
       if (error != MICRO_LOG_OK) { MICRO_LOG_FREE(line); goto done; }
     }
-    else if (strncmp(line, "file:", 5) == 0)
+    else if (_micro_log_strncmp(line, "file:", 5) == 0)
     {
       size_t pos = 5;
       pos += _micro_log_get_spaces(line + pos, len - 6);
@@ -984,7 +1074,7 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
       if (error != MICRO_LOG_OK) { MICRO_LOG_FREE(line); goto done; }
     }
     #ifdef MICRO_LOG_SOCKETS
-    else if (strncmp(line, "inet:", 5) == 0)
+    else if (_micro_log_strncmp(line, "inet:", 5) == 0)
     {
       char* addr;
       int port;
@@ -1041,11 +1131,11 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
         goto done;
       }
 
-      if (strncmp(line + pos, "tcp", 3) == 0)
+      if (_micro_log_strncmp(line + pos, "tcp", 3) == 0)
       {
         proto = MICRO_LOG_PROTO_TCP;
       }
-      else if (strncmp(line + pos, "udp", 3) == 0)
+      else if (_micro_log_strncmp(line + pos, "udp", 3) == 0)
       {
         proto = MICRO_LOG_PROTO_UDP;
       }
@@ -1066,7 +1156,7 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
       MICRO_LOG_FREE(addr);
     }
     #if defined(__unix__) || defined(__unix)
-    else if (strncmp(line, "unix:", 5) == 0)
+    else if (_micro_log_strncmp(line, "unix:", 5) == 0)
     {
       spaces = _micro_log_get_spaces(line + 5, len - 6);
       error = micro_log_set_socket_unix2(micro_log, line + 5 + spaces);
@@ -1085,7 +1175,7 @@ micro_log_from_file2(MicroLog *micro_log, char *filename)
     line = NULL;
   }
   
-  if (fclose(file) != 0)
+  if (MICRO_LOG_FCLOSE(file) != 0)
   {
     error = MICRO_LOG_ERROR_CLOSE_FILE;
     goto done;
@@ -1111,9 +1201,9 @@ MICRO_LOG_DEF micro_log_error micro_log_close2(MicroLog *micro_log)
   
   if (micro_log->file != NULL)
   {
-    if (fclose(micro_log->file) != 0)
+    if (MICRO_LOG_FCLOSE(micro_log->file) != 0)
     {
-      perror("Error closing file");
+      MICRO_LOG_OUT("Error closing file");
       error = MICRO_LOG_ERROR_CLOSE_FILE;
       goto done;
     }
@@ -1162,18 +1252,18 @@ MICRO_LOG_DEF micro_log_error micro_log_flush2(MicroLog *micro_log)
 
   if (micro_log->out_bitfield & MICRO_LOG_OUT_STDOUT)
   {
-    if (fflush(stdout) != 0)
+    if (MICRO_LOG_FLUSH(stdout) != 0)
     {
-      perror("Error flushing stdout");
+      MICRO_LOG_OUT("Error flushing stdout");
       error = MICRO_LOG_ERROR_FLUSH_STDOUT;
       goto done;
     }
   }
   if (micro_log->out_bitfield & MICRO_LOG_OUT_FILE)
   {
-    if (fflush(micro_log->file) != 0)
+    if (MICRO_LOG_FLUSH(micro_log->file) != 0)
     {
-      perror("Error flushing file");
+      MICRO_LOG_OUT("Error flushing file");
       error = MICRO_LOG_ERROR_FLUSH_FILE;
       goto done;
     }
@@ -1259,18 +1349,18 @@ micro_log_set_file2(MicroLog *micro_log,
   
   if (micro_log->file != NULL)
   {
-    if (fclose(micro_log->file) != 0)
+    if (MICRO_LOG_FCLOSE(micro_log->file) != 0)
     {
-      perror("Error closing file");
+      MICRO_LOG_OUT("Error closing file");
       error = MICRO_LOG_ERROR_CLOSE_FILE;
       goto done;
     }
   }
   
-  FILE *file = fopen(filename, "w+");
+  void *file = MICRO_LOG_FOPEN(filename, MICRO_FILE_MODE_WRITE);
   if (file == NULL)
   {
-    perror("Error opening file");
+    MICRO_LOG_OUT("Error opening file");
     error = MICRO_LOG_ERROR_OPEN_FILE;
     goto done;
   }
@@ -1309,7 +1399,7 @@ micro_log_set_socket_inet2(MicroLog *micro_log,
   {
     if (close_socket(micro_log->inet_sock_fd) < 0)
     {
-      perror("Error closing inet socket");
+      MICRO_LOG_OUT("Error closing inet socket");
       error = MICRO_LOG_ERROR_CLOSE_INET_SOCK;
       goto done;
     }
@@ -1329,7 +1419,7 @@ micro_log_set_socket_inet2(MicroLog *micro_log,
   }
   if (micro_log->inet_sock_fd < 0)
   {
-    perror("Error creating socket");
+    MICRO_LOG_OUT("Error creating socket");
     error = MICRO_LOG_ERROR_OPEN_INET_SOCK;
     goto done;
   }
@@ -1340,7 +1430,7 @@ micro_log_set_socket_inet2(MicroLog *micro_log,
 
   if(inet_pton(AF_INET, addr, &sockaddr_in.sin_addr) <= 0)
   {
-    perror("Error setting inet socket addr");
+    MICRO_LOG_OUT("Error setting inet socket addr");
     error = MICRO_LOG_ERROR_INET_ADDR;
     goto done;
   } 
@@ -1348,7 +1438,7 @@ micro_log_set_socket_inet2(MicroLog *micro_log,
   if (connect(micro_log->inet_sock_fd, (struct sockaddr *) &sockaddr_in,
               sizeof(sockaddr_in)) < 0)
   {
-    perror("Error connecting to inet socket");
+    MICRO_LOG_OUT("Error connecting to inet socket");
     error = MICRO_LOG_ERROR_INET_CONNECT;
     goto done;
   }
@@ -1383,7 +1473,7 @@ micro_log_set_socket_unix2(MicroLog* micro_log, char* path)
   {
     if (close(micro_log->unix_sock_fd) < 0)
     {
-      perror("Error closing unix socket");
+      MICRO_LOG_OUT("Error closing unix socket");
       error = MICRO_LOG_ERROR_CLOSE_UNIX_SOCK;
       goto done;
     }
@@ -1392,7 +1482,7 @@ micro_log_set_socket_unix2(MicroLog* micro_log, char* path)
   micro_log->unix_sock_fd = socket(AF_UNIX, SOCK_STREAM, 0);
   if (micro_log->unix_sock_fd < 0)
   {
-    perror("Error creating unix socket");
+    MICRO_LOG_OUT("Error creating unix socket");
     error = MICRO_LOG_ERROR_OPEN_UNIX_SOCK;
     goto done;
   }
@@ -1405,7 +1495,7 @@ micro_log_set_socket_unix2(MicroLog* micro_log, char* path)
   if (connect(micro_log->unix_sock_fd, (struct sockaddr *) &sockaddr_un,
               sizeof(sockaddr_un)) < 0)
   {
-    perror("Error connecting to unix socket");
+    MICRO_LOG_OUT("Error connecting to unix socket");
     error = MICRO_LOG_ERROR_UNIX_CONNECT;
     goto done;
   }
@@ -1436,9 +1526,9 @@ micro_log_level_string(MicroLogLevel level, bool color)
   case MICRO_LOG_LEVEL_DEBUG:
     return color ? MICRO_LOG_GRN("DEBUG") : "DEBUG";
   case MICRO_LOG_LEVEL_INFO:
-    return color ? MICRO_LOG_CYN("INFO") : "INFO";
+    return color ? MICRO_LOG_CYN("INFO ") : "INFO ";
   case MICRO_LOG_LEVEL_WARN:
-    return color ? MICRO_LOG_YEL("WARN") : "WARN";
+    return color ? MICRO_LOG_YEL("WARN ") : "WARN ";
   case MICRO_LOG_LEVEL_ERROR:
     return color ? MICRO_LOG_RED("ERROR") : "ERROR";
   case MICRO_LOG_LEVEL_FATAL:
@@ -1495,6 +1585,7 @@ _micro_log_write_impl(MicroLog *micro_log,
     CHECK_ERROR();
   }
 
+  #ifdef MICRO_LOG_DATE_TIME
   if (micro_log->flags_bitfield & MICRO_LOG_FLAG_DATE)
   {
     if (json)
@@ -1505,7 +1596,7 @@ _micro_log_write_impl(MicroLog *micro_log,
 
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
-    error = _micro_log_print_outputs(micro_log, COLOR("%d-%02d-%02d"),
+    error = _micro_log_print_outputs(micro_log, COLOR("%d-%d-%d"),
             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
     CHECK_ERROR();
     
@@ -1529,7 +1620,7 @@ _micro_log_write_impl(MicroLog *micro_log,
 
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
-    error = _micro_log_print_outputs(micro_log, COLOR("%02d:%02d:%02d"),
+    error = _micro_log_print_outputs(micro_log, COLOR("%d:%d:%d"),
                                      tm.tm_hour, tm.tm_min, tm.tm_sec);
     CHECK_ERROR();
     
@@ -1542,6 +1633,7 @@ _micro_log_write_impl(MicroLog *micro_log,
     error = _micro_log_print_outputs(micro_log, " ");
     CHECK_ERROR();
   }
+  #endif
 
   if (micro_log->flags_bitfield & MICRO_LOG_FLAG_LEVEL)
   {
@@ -1551,7 +1643,7 @@ _micro_log_write_impl(MicroLog *micro_log,
       CHECK_ERROR();
     }
 
-    error = _micro_log_print_outputs(micro_log, "%-5s",
+    error = _micro_log_print_outputs(micro_log, "%s",
                                      micro_log_level_string(level, color));
     CHECK_ERROR();
     
@@ -1565,6 +1657,7 @@ _micro_log_write_impl(MicroLog *micro_log,
     CHECK_ERROR();
   }
 
+  #ifdef MICRO_LOG_PID
   if (micro_log->flags_bitfield & MICRO_LOG_FLAG_PID)
   {
     if (json)
@@ -1606,6 +1699,7 @@ _micro_log_write_impl(MicroLog *micro_log,
     error = _micro_log_print_outputs(micro_log, " ");
     CHECK_ERROR();
   }
+  #endif
 
   if (micro_log->flags_bitfield & MICRO_LOG_FLAG_FILE)
   {
@@ -1661,11 +1755,11 @@ _micro_log_write_impl(MicroLog *micro_log,
   }
   
  do_print:;
-  va_list args;
-  va_start(args, fmt);
+  _micro_log_va_list args;
+  _micro_log_va_start(args, fmt);
   error = _micro_log_print_outputs_args(micro_log, fmt, args);
-  if (error != MICRO_LOG_OK) { va_end(args); goto done; }
-  va_end(args);
+  if (error != MICRO_LOG_OK) { _micro_log_va_end(args); goto done; }
+  _micro_log_va_end(args);
 
   if (json)
   {
@@ -1688,13 +1782,111 @@ MICRO_LOG_DEF micro_log_error
 _micro_log_print_outputs(MicroLog *micro_log, const char* fmt, ...)
 {
   micro_log_error error;
-  va_list args;
+  _micro_log_va_list args;
 
-  va_start(args, fmt);
+  _micro_log_va_start(args, fmt);
   error = _micro_log_print_outputs_args(micro_log, fmt, args);
-  va_end(args);
+  _micro_log_va_end(args);
   
   return error;
+}
+
+static char* _micro_log_strcat_and_advance(char* dest, const char* src)
+{
+  while (*src)
+  {
+    *dest++ = *src++;
+  }
+  return dest;
+}
+
+static char* _micro_log_itoa(long val, char* buf, int base)
+{
+  char* p = buf;
+  char* p1, *p2;
+  unsigned long uval = (val < 0 && base == 10) ? -val : val;
+
+  do {
+    *p++ = "0123456789abcdef"[uval % base];
+  } while (uval /= base);
+
+  if (val < 0 && base == 10) *p++ = '-';
+  *p = '\0';
+
+  p1 = buf; p2 = p - 1;
+  while (p1 < p2)
+  {
+    char tmp = *p1; *p1++ = *p2; *p2-- = tmp;
+  }
+  return buf;
+}
+
+static void _micro_log_format(char* out, const char* fmt,
+                              _micro_log_va_list args)
+{
+  while (*fmt)
+  {
+    if (*fmt == '%')
+    {
+      fmt++;
+      switch (*fmt)
+      {
+      case 'd':
+      case 'i': {
+        char buf[32];
+        _micro_log_itoa(_micro_log_va_arg(args, int), buf, 10);
+        out = _micro_log_strcat_and_advance(out, buf);
+        break;
+      }
+      case 'x': {
+        char buf[32];
+        _micro_log_itoa(_micro_log_va_arg(args, unsigned int), buf, 16);
+        out = _micro_log_strcat_and_advance(out, buf);
+        break;
+      }
+      case 's': {
+        char* s = _micro_log_va_arg(args, char*);
+        if (!s) s = "(null)";
+        out = _micro_log_strcat_and_advance(out, s);
+        break;
+      }
+      case 'f': {
+        double f = _micro_log_va_arg(args, double);
+        char buf[64];
+        // Handle negative
+        if (f < 0) { *out++ = '-'; f = -f; }
+        // Integer part
+        long i_part = (long)f;
+        _micro_log_itoa(i_part, buf, 10);
+        out = _micro_log_strcat_and_advance(out, buf);
+        *out++ = '.';
+        // Fractional part (6 decimal places)
+        long f_part = (long)((f - (double)i_part) * 1000000.0 + 0.5);
+        _micro_log_itoa(f_part, buf, 10);
+        // Add leading zeros to fraction if necessary
+        int len = 0; while(buf[len]) len++;
+        for(int z = 0; z < (6 - len); z++) *out++ = '0';
+        out = _micro_log_strcat_and_advance(out, buf);
+        break;
+      }
+      case '%': {
+        *out++ = '%';
+        break;
+      }
+      default: {
+        *out++ = '%';
+        *out++ = *fmt;
+        break;
+      }
+      }
+    }
+    else
+    {
+      *out++ = *fmt;
+    }
+    fmt++;
+  }
+  *out = '\0';
 }
 
 MICRO_STATIC_ASSERT(_MICRO_LOG_OUT_MAX == (1 << 4),
@@ -1702,57 +1894,45 @@ MICRO_STATIC_ASSERT(_MICRO_LOG_OUT_MAX == (1 << 4),
 MICRO_LOG_DEF micro_log_error
 _micro_log_print_outputs_args(MicroLog *micro_log,
                               const char* fmt,
-                              va_list args)
+                              _micro_log_va_list args)
 {
   micro_log_error error = MICRO_LOG_OK;
-
+  char buff[MICRO_LOG_MAX_STRING_SIZE] = {0};
+  _micro_log_format(buff, fmt, args);
+  
   if (micro_log->out_bitfield & MICRO_LOG_OUT_STDOUT)
   {
-    va_list copy;
-    va_copy(copy, args);
-    if (vfprintf(stdout, fmt, copy) < 0)
+    if (MICRO_LOG_OUT(buff) < 0)
     {
       error = MICRO_LOG_ERROR_PRINTF_STDOUT;
-      va_end(copy);
       goto done;
     }
-    va_end(copy);
   }
   if (micro_log->out_bitfield & MICRO_LOG_OUT_FILE)
   {
-    va_list copy;
-    va_copy(copy, args);
-    if (vfprintf(micro_log->file, fmt, copy) < 0)
+    if (MICRO_LOG_OUT(buff) < 0)
     {
       error = MICRO_LOG_ERROR_PRINTF_FILE;
-      va_end(copy);
       goto done;
     }
-    va_end(copy);
   }
   #ifdef MICRO_LOG_SOCKETS
   if (micro_log->out_bitfield & MICRO_LOG_OUT_SOCK_INET)
   {
-    va_list copy; va_copy(copy, args);
-    if (vdprintf(micro_log->inet_sock_fd, fmt, copy) < 0)
+    if (write(micro_log->inet_sock_fd, buff, _micro_log_strlen(buff)) < 0)
     {
       error = MICRO_LOG_ERROR_VPRINTF_SOCK_INET;
-      va_end(copy);
       goto done;
     }
-    va_end(copy); 
   }
   #if defined(__unix__) || defined(__unix)
   if (micro_log->out_bitfield & MICRO_LOG_OUT_SOCK_UNIX)
   {
-    va_list copy; va_copy(copy, args);
-    if (vdprintf(micro_log->unix_sock_fd, fmt, copy) < 0)
+    if (write(micro_log->unix_sock_fd, buff, _micro_log_strlen(buff)) < 0)
     {
       error = MICRO_LOG_ERROR_VPRINTF_SOCK_INET;
-      va_end(copy);
       goto done;
     }
-    va_end(copy);
   }
   #endif // __unix__
   #endif // MICRO_LOG_SOCKETS

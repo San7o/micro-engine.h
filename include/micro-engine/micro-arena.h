@@ -118,9 +118,11 @@ extern "C" {
 // Types
 //
 
-#include <stddef.h>
-#include <stdbool.h>
-
+#ifndef _SIZE_T_DEFINED
+  #define _SIZE_T_DEFINED
+  typedef __SIZE_TYPE__ size_t;
+#endif
+  
 #ifdef MICRO_ARENA_MULTITHREADED
   #include <pthread.h>
 #endif

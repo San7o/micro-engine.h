@@ -6,8 +6,9 @@
 #ifndef MICRO_TYPES_H
 #define MICRO_TYPES_H
 
-#ifndef size_t
-  typedef long unsigned int  size_t;
+#ifndef _SIZE_T_DEFINED
+  #define _SIZE_T_DEFINED
+  typedef long unsigned int size_t;
 #endif
 
 #ifndef true
@@ -18,7 +19,7 @@
 #endif
 
 #ifndef bool
-  typedef _Bool bool;
+  #define bool _Bool
 #endif
 
 #ifndef NULL

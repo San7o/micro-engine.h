@@ -174,9 +174,9 @@ static bool sdl3_platform_get_key(MicroKey key)
   return key_states[scan_code];
 }
 
-static void sdl3_platform_print(const char* msg)
+static int sdl3_platform_print(const char* msg)
 {
-  printf(msg);
+  return printf(msg);
 }
 
 static void* sdl3_platform_open(const char* path, MicroFileMode mode)
@@ -190,9 +190,10 @@ static void* sdl3_platform_open(const char* path, MicroFileMode mode)
   return NULL;
 }
 
-static void sdl3_platform_close(void* handle)
+static bool sdl3_platform_close(void* handle)
 {
-  fclose(handle);
+  if (fclose(handle) == 0) return true;
+  return false;
 }
 
 static size_t sdl3_platform_read(void* handle, void* buffer, size_t size)

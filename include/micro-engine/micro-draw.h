@@ -863,9 +863,128 @@ micro_draw_text(MicroDrawCanvas *canvas,
   
 #ifdef MICRO_DRAW_PPM
 
-// TODO: write a custom atoi implementation
-#include <stdlib.h> // atoi
+typedef __builtin_va_list _micro_draw_va_list;
 
+#define _micro_draw_va_start(v, l)  __builtin_va_start(v, l)
+#define _micro_draw_va_end(v)      __builtin_va_end(v)
+#define _micro_draw_va_arg(v, l)    __builtin_va_arg(v, l)
+#define _micro_draw_va_copy(d, s)   __builtin_va_copy(d, s)
+
+
+static char* _micro_draw_strcat_and_advance(char* dest, const char* src)
+{
+  while (*src)
+  {
+    *dest++ = *src++;
+  }
+  return dest;
+}
+
+static char* _micro_draw_itoa(long val, char* buf, int base)
+{
+  char* p = buf;
+  char* p1, *p2;
+  unsigned long uval = (val < 0 && base == 10) ? -val : val;
+
+  do {
+    *p++ = "0123456789abcdef"[uval % base];
+  } while (uval /= base);
+
+  if (val < 0 && base == 10) *p++ = '-';
+  *p = '\0';
+
+  p1 = buf; p2 = p - 1;
+  while (p1 < p2)
+  {
+    char tmp = *p1; *p1++ = *p2; *p2-- = tmp;
+  }
+  return buf;
+}
+
+static void _micro_draw_format(char* out, const char* fmt,
+                               _micro_draw_va_list args)
+{
+  while (*fmt)
+  {
+    if (*fmt == '%')
+    {
+      fmt++;
+      switch (*fmt)
+      {
+      case 'd':
+      case 'i': {
+        char buf[32];
+        _micro_draw_itoa(_micro_draw_va_arg(args, int), buf, 10);
+        out = _micro_draw_strcat_and_advance(out, buf);
+        break;
+      }
+      case 'x': {
+        char buf[32];
+        _micro_draw_itoa(_micro_draw_va_arg(args, unsigned int), buf, 16);
+        out = _micro_draw_strcat_and_advance(out, buf);
+        break;
+      }
+      case 's': {
+        char* s = _micro_draw_va_arg(args, char*);
+        if (!s) s = "(null)";
+        out = _micro_draw_strcat_and_advance(out, s);
+        break;
+      }
+      case 'f': {
+        double f = _micro_draw_va_arg(args, double);
+        char buf[64];
+        // Handle negative
+        if (f < 0) { *out++ = '-'; f = -f; }
+        // Integer part
+        long i_part = (long)f;
+        _micro_draw_itoa(i_part, buf, 10);
+        out = _micro_draw_strcat_and_advance(out, buf);
+        *out++ = '.';
+        // Fractional part (6 decimal places)
+        long f_part = (long)((f - (double)i_part) * 1000000.0 + 0.5);
+        _micro_draw_itoa(f_part, buf, 10);
+        // Add leading zeros to fraction if necessary
+        int len = 0; while(buf[len]) len++;
+        for(int z = 0; z < (6 - len); z++) *out++ = '0';
+        out = _micro_draw_strcat_and_advance(out, buf);
+        break;
+      }
+      case '%': {
+        *out++ = '%';
+        break;
+      }
+      default: {
+        *out++ = '%';
+        *out++ = *fmt;
+        break;
+      }
+      }
+    }
+    else
+    {
+      *out++ = *fmt;
+    }
+    fmt++;
+  }
+  *out = '\0';
+}
+  
+static int _micro_draw_sprintf(char* buf, const char* fmt, ...)
+{
+  _micro_draw_va_list args;
+  _micro_draw_va_start(args, fmt);
+    
+  // We reuse the formatter you just built
+  _micro_draw_format(buf, fmt, args);
+    
+  _micro_draw_va_end(args);
+
+  // To be fully compliant, we should return the number of characters written
+  int len = 0;
+  while (buf[len]) len++;
+  return len;
+}
+  
 // The PPM header starts with 4 values speareted by either space or
 // newline: ID, WIDTH, HEIGHT, MAX_COLOR_VALUE.
 // Where ID is either:
@@ -900,18 +1019,19 @@ micro_draw_to_ppm(const char *filename, MicroDrawCanvas *canvas)
   switch(canvas->pixel)
   {
   case MICRO_DRAW_RGBA8:
-    sprintf(buff, "P6\n%d %d\n%d\n", canvas->width,
+
+    _micro_draw_sprintf(buff, "P6\n%d %d\n%d\n", canvas->width,
             canvas->height, (1 << (channel_size * 8)) - 1);
     MICRO_DRAW_FWRITE(buff, 1, _micro_draw_strlen(buff), file);
     for (int i = 0; i < data_size; i += channels * channel_size)
     {
-      fwrite(canvas->data + i, channel_size, (channels - 1), file);
+      MICRO_LOG_FWRITE(canvas->data + i, channel_size, (channels - 1), file);
     }
     break;
     
   case MICRO_DRAW_BLACK_WHITE:
 
-    sprintf(buff, "P1\n%d %d\n%d\n", canvas->width, canvas->height, 1);
+    _micro_draw_sprintf(buff, "P1\n%d %d\n%d\n", canvas->width, canvas->height, 1);
     MICRO_DRAW_FWRITE(buff, 1, _micro_draw_strlen(buff), file);
     for (int i = 0; i < data_size; i += channels * channel_size)
     {
@@ -953,6 +1073,34 @@ typedef enum {
   _MICRO_DRAW_P6,
 } _MicroDrawPPMType;
 
+static int _micro_draw_atoi(const char* s)
+{
+  int res = 0;
+  int sign = 1;
+
+  while (*s == ' ' || (*s >= '\t' && *s <= '\r')) {
+    s++;
+  }
+
+  if (*s == '-')
+  {
+    sign = -1;
+    s++;
+  }
+  else if (*s == '+')
+  {
+    s++;
+  }
+
+  while (*s >= '0' && *s <= '9')
+  {
+    res = res * 10 + (*s - '0');
+    s++;
+  }
+
+  return res * sign;
+}
+  
 MICRO_STATIC_ASSERT(_MICRO_DRAW_PIXEL_MAX == 2,
                     should_also_update_micro_from_to_ppm);
 MICRO_DRAW_DEF MicroDrawError
@@ -1005,10 +1153,10 @@ micro_draw_from_ppm(const char* filename, MicroDrawCanvas **canvas)
     int position = 0;
     do
     {
-      fread(num_buff + position, 1, 1, file);
+      MICRO_LOG_FREAD(num_buff + position, 1, 1, file);
       position++;
     } while (!_micro_draw_is_whitespace(num_buff[position-1]) && position < 30);
-    width = atoi(num_buff);
+    width = _micro_draw_atoi(num_buff);
     if (width == 0)
     {
       error = MICRO_DRAW_ERROR_INVALID_IMAGE_SIZE;
@@ -1022,10 +1170,10 @@ micro_draw_from_ppm(const char* filename, MicroDrawCanvas **canvas)
     int position = 0;
     do
     {
-      fread(num_buff + position, 1, 1, file);
+      MICRO_LOG_FREAD(num_buff + position, 1, 1, file);
       position++;
     } while (!_micro_draw_is_whitespace(num_buff[position-1]) && position < 30);
-    height = atoi(num_buff);
+    height = _micro_draw_atoi(num_buff);
     if (height == 0)
     {
       error = MICRO_DRAW_ERROR_INVALID_IMAGE_SIZE;
@@ -1043,7 +1191,7 @@ micro_draw_from_ppm(const char* filename, MicroDrawCanvas **canvas)
       MICRO_DRAW_FREAD(num_buff + position, 1, 1, file);
       position++;
     } while (!_micro_draw_is_whitespace(num_buff[position-1]) && position < 30);
-    color_max = atoi(num_buff);
+    color_max = _micro_draw_atoi(num_buff);
     if (color_max == 0)
     {
       error = MICRO_DRAW_ERROR_INVALID_IMAGE_SIZE;

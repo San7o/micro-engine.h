@@ -18,7 +18,7 @@ it has no dependencies.
   - pltform is abstracted in `micro-platform.h`, you need to implement
     just a few functions to port the engine. See
     [platforms](./include/micro-engine/platforms)
-  - no dependencies
+  - no dependencies (the core headers can be compiled without libc)
   - works everywhere C can compile to
 - modularity: everything can be used as a stand-alone header-only
     library, meaning that you can use any part of the engine in your

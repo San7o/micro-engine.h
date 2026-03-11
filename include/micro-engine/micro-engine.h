@@ -35,25 +35,32 @@
   #define STB_TRUETYPE_IMPLEMENTATION
 #endif
 
-#define MICRO_ARENA_GLOBAL
-//#define MICRO_ARENA_DEBUG
-#include "micro-arena.h"
-
-#define MICRO_LOG_MALLOC(...)  micro_arena_gmalloc(__VA_ARGS__)
-#define MICRO_LOG_FREE(...)    micro_arena_gfree(__VA_ARGS__)
-#define MICRO_DRAW_MALLOC(...) micro_arena_gmalloc(__VA_ARGS__)
-#define MICRO_DRAW_FREE(...)   micro_arena_gfree(__VA_ARGS__)
-#define STBI_MALLOC(...)       micro_arena_gmalloc(__VA_ARGS__)
-#define STBI_REALLOC(...)      micro_arena_grealloc(__VA_ARGS__)
-#define STBI_FREE(...)         micro_arena_gfree(__VA_ARGS__)
-
 #ifndef MICRO_ENGINE_MEMORY_SIZE
   #define MICRO_ENGINE_MEMORY_SIZE (4 * 1024 * 1024) // bytes
 #endif
 
+#define MICRO_ARENA_GLOBAL
+//#define MICRO_ARENA_DEBUG
+#include "micro-arena.h"
+
+#define MICRO_LOG_MALLOC(...)   micro_arena_gmalloc(__VA_ARGS__)
+#define MICRO_LOG_FREE(...)     micro_arena_gfree(__VA_ARGS__)
+#define MICRO_LOG_REALLOC(...)  micro_arena_grealloc(__VA_ARGS__)
+#define MICRO_LOG_FOPEN(...)    micro_platform.open(__VA_ARGS__)
+#define MICRO_LOG_FCLOSE(...)   micro_platform.close(__VA_ARGS__)
+#define MICRO_LOG_FREAD(buff, size, nmemb, stream)  \
+  micro_platform.read(stream, buff, (size) * (nmemb))
+#define MICRO_LOG_FWRITE(buff, size, nmemb, stream)  \
+  micro_platform.write(stream, buff, (size) * (nmemb))
+#define MICRO_LOG_OUT(...)      micro_platform.print(__VA_ARGS__)
 #include "micro-log.h"
 #include "micro-la.h"
 
+#define STBI_MALLOC(...)       micro_arena_gmalloc(__VA_ARGS__)
+#define STBI_REALLOC(...)      micro_arena_grealloc(__VA_ARGS__)
+#define STBI_FREE(...)         micro_arena_gfree(__VA_ARGS__)
+#define MICRO_DRAW_MALLOC(...) micro_arena_gmalloc(__VA_ARGS__)
+#define MICRO_DRAW_FREE(...)   micro_arena_gfree(__VA_ARGS__)
 #define MICRO_DRAW_FOPEN(...)  micro_platform.open(__VA_ARGS__)
 #define MICRO_DRAW_FCLOSE(...) micro_platform.close(__VA_ARGS__)
 #define MICRO_DRAW_FREAD(buff, size, nmemb, stream)  \

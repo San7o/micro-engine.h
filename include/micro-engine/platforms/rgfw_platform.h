@@ -225,9 +225,9 @@ static bool rgfw_platform_get_key(MicroKey key)
   return RGFW_window_isKeyDown(_rgfw_window, rgfw_key);
 }
 
-static void rgfw_platform_print(const char* msg)
+static int rgfw_platform_print(const char* msg)
 {
-  printf(msg);
+  return printf(msg);
 }
 
 static void* rgfw_platform_open(const char* path, MicroFileMode mode)
@@ -241,9 +241,10 @@ static void* rgfw_platform_open(const char* path, MicroFileMode mode)
   return NULL;
 }
 
-static void rgfw_platform_close(void* handle)
+static bool rgfw_platform_close(void* handle)
 {
-  fclose(handle);
+  if (fclose(handle) == 0) return true;
+  return false;
 }
 
 static size_t rgfw_platform_read(void* handle, void* buffer, size_t size)
