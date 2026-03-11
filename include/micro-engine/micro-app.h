@@ -14,8 +14,6 @@
 
 // You need to provide an implementation to these symbols
 
-MicroPlatform micro_app_platform;
-MicroPlatform set_micro_app_platform(void);
 bool micro_app_setup(void);
 bool micro_app_update(float delta_time);
 bool micro_app_draw(void);
@@ -30,7 +28,7 @@ static bool _micro_app_loop(void* prev_time_ptr)
 #endif
 {
   long unsigned int *prev_time = ((long unsigned int*) prev_time_ptr);
-  long unsigned int time = micro_app_platform.get_ticks_ms();
+  long unsigned int time = micro_platform.get_ticks_ms();
   long unsigned int delta = time - *prev_time;
   *prev_time = time;
 
@@ -40,7 +38,7 @@ static bool _micro_app_loop(void* prev_time_ptr)
   if (!micro_app_draw())         // user implemented
     goto error;
     
-  micro_app_platform.pool_events();
+  micro_platform.pool_events();
 
 #ifdef __EMSCRIPTEN__
   return;
@@ -58,13 +56,11 @@ static bool _micro_app_loop(void* prev_time_ptr)
 
 int main(void)
 {
-  micro_app_platform = set_micro_app_platform(); // user implemented
-  
   if (!micro_app_setup())     // user implemented
     return 1;
 
   int fps = 60;
-  long unsigned int prev_time = micro_app_platform.get_ticks_ms();
+  long unsigned int prev_time = micro_platform.get_ticks_ms();
   
   #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop_arg(_micro_app_loop, &prev_time, fps, true);

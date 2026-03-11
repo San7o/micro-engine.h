@@ -12,8 +12,7 @@
 
 int main(void)
 {
-  MicroPlatform platform = sdl3_platform;
-  platform.init("micro-engine", WIDTH, HEIGHT);
+  micro_platform.init("micro-engine", WIDTH, HEIGHT);
 
   micro_log_init();
   micro_log_set_flags(MICRO_LOG_FLAG_LEVEL
@@ -43,11 +42,11 @@ int main(void)
   unsigned long int time;
 	while (1)
   {
-    platform.pool_events();
-		if (platform.get_key(MICRO_KEY_ESCAPE))
+    micro_platform.pool_events();
+		if (micro_platform.get_key(MICRO_KEY_ESCAPE))
       break;
 
-    time = platform.get_ticks_ms();
+    time = micro_platform.get_ticks_ms();
     unsigned long int delta = time - prev_time;
     prev_time = time;
     char fps_str[20] = {0};
@@ -58,12 +57,12 @@ int main(void)
     micro_draw_text(&canvas, hello_text, red);
     micro_draw_text(&canvas, fps_text, red);
 
-    platform.draw_frame(canvas.data, canvas.width, canvas.height);
-    //platform.sleep_ms(16);
+    micro_platform.draw_frame(canvas.data, canvas.width, canvas.height);
+    //micro_platform.sleep_ms(16);
 	}
 
   micro_draw_canvas_free(&canvas);
   micro_log_close();
-  platform.terminate();
+  micro_platform.terminate();
   return 0;
 }

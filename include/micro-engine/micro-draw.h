@@ -102,10 +102,30 @@ extern "C" {
   #define MICRO_DRAW_DEF extern
 #endif
 
+// I/O operations
+#ifndef MICRO_DRAW_FOPEN
+  #include <stdio.h>
+  #define MICRO_DRAW_FOPEN fopen
+  #define MICRO_FILE_MODE_READ "r"
+  #define MICRO_FILE_MODE_WRITE "w+"
+#endif
+#ifndef MICRO_DRAW_FCLOSE
+  #define MICRO_DRAW_FCLOSE fclose
+#endif
+#ifndef MICRO_DRAW_FREAD
+  #define MICRO_DRAW_FREAD fread
+#endif
+#ifndef MICRO_DRAW_FWRITE
+  #define MICRO_DRAW_FWRITE fwrite
+#endif
+#ifndef MICRO_DRAW_OUT
+  #define MICRO_DRAW_OUT printf
+#endif
+
+// Memory operations
 #ifndef MICRO_DRAW_MALLOC
   #define MICRO_DRAW_MALLOC malloc
 #endif
-
 #ifndef MICRO_DRAW_FREE
   #define MICRO_DRAW_FREE free
 #endif
@@ -843,7 +863,7 @@ micro_draw_text(MicroDrawCanvas *canvas,
   
 #ifdef MICRO_DRAW_PPM
 
-#include <stdio.h>  // fread
+// TODO: write a custom atoi implementation
 #include <stdlib.h> // atoi
 
 // The PPM header starts with 4 values speareted by either space or
@@ -861,27 +881,28 @@ micro_draw_text(MicroDrawCanvas *canvas,
 MICRO_STATIC_ASSERT(_MICRO_DRAW_PIXEL_MAX == 2,
                     should_also_update_micro_draw_to_ppm);
 MICRO_DRAW_DEF MicroDrawError
-micro_draw_to_ppm(const char *filename, MicrDrawCanvas *canvas)
+micro_draw_to_ppm(const char *filename, MicroDrawCanvas *canvas)
 {
   MicroDrawError error = MICRO_DRAW_OK;
   
-  FILE* file = fopen(filename, "w+");
+  void* file = MICRO_DRAW_FOPEN(filename, MICRO_FILE_MODE_WRITE);
   if (file == NULL)
   {
-    perror("Error opening file");
+    MICRO_DRAW_OUT("Error opening file");
     return MICRO_DRAW_ERROR_OPEN_FILE;
   }
 
-  int channels = micro_draw_get_channels(canvas->pixel);
+  int channels     = micro_draw_get_channels(canvas->pixel);
   int channel_size = micro_draw_get_channel_size(canvas->pixel);
-  int data_size = canvas->width * canvas->height * channels * channel_size;
+  int data_size    = canvas->width * canvas->height * channels * channel_size;
 
-  switch(pixel)
+  char buff[100] = {0};
+  switch(canvas->pixel)
   {
   case MICRO_DRAW_RGBA8:
-    
-    fprintf(file, "P6\n%d %d\n%d\n", canvas->width,
+    sprintf(buff, "P6\n%d %d\n%d\n", canvas->width,
             canvas->height, (1 << (channel_size * 8)) - 1);
+    MICRO_DRAW_FWRITE(buff, 1, _micro_draw_strlen(buff), file);
     for (int i = 0; i < data_size; i += channels * channel_size)
     {
       fwrite(canvas->data + i, channel_size, (channels - 1), file);
@@ -889,11 +910,12 @@ micro_draw_to_ppm(const char *filename, MicrDrawCanvas *canvas)
     break;
     
   case MICRO_DRAW_BLACK_WHITE:
-    
-    fprintf(file, "P1\n%d %d\n%d\n", canvas->width, canvas->height, 1);
+
+    sprintf(buff, "P1\n%d %d\n%d\n", canvas->width, canvas->height, 1);
+    MICRO_DRAW_FWRITE(buff, 1, _micro_draw_strlen(buff), file);
     for (int i = 0; i < data_size; i += channels * channel_size)
     {
-      fwrite(canvas->data + i, channel_size, (channels - 1), file);
+      MICRO_DRAW_FWRITE(canvas->data + i, channel_size, (channels - 1), file);
     }
     break;
     
@@ -902,7 +924,7 @@ micro_draw_to_ppm(const char *filename, MicrDrawCanvas *canvas)
   }
 
  done:
-  fclose(file);
+  MICRO_DRAW_FCLOSE(file);
   return error;
 }
 
@@ -939,17 +961,17 @@ micro_draw_from_ppm(const char* filename, MicroDrawCanvas **canvas)
   _MicroDrawPPMType file_type = 0;
   int color_max = 0;
   MicroDrawError error = MICRO_DRAW_OK;
-  FILE *file = fopen(filename, "r");
+  void *file = MICRO_DRAW_FOPEN(filename, MICRO_FILE_MODE_READ);
   if (file == NULL)
   {
-    perror("Error opening file");
+    MICRO_DRAW_OUT("Error opening file");
     return MICRO_DRAW_ERROR_OPEN_FILE;
   }
 
   // Parse header ----------------------------------------------------
   
   char magic[3];
-  fread(magic, 1, 3, file);
+  MICRO_DRAW_FREAD(magic, 1, 3, file);
   if (_micro_draw_strcmp(magic, "P1") == 0)
   {
     file_type = _MICRO_DRAW_P1;
@@ -974,6 +996,9 @@ micro_draw_from_ppm(const char* filename, MicroDrawCanvas **canvas)
     goto done;
   }
 
+  int width  = 0;
+  int height = 0;;
+  
   // Data width
   {
     char num_buff[30] = {0};
@@ -983,8 +1008,8 @@ micro_draw_from_ppm(const char* filename, MicroDrawCanvas **canvas)
       fread(num_buff + position, 1, 1, file);
       position++;
     } while (!_micro_draw_is_whitespace(num_buff[position-1]) && position < 30);
-    canvas->width = atoi(num_buff);
-    if (canvas->width == 0)
+    width = atoi(num_buff);
+    if (width == 0)
     {
       error = MICRO_DRAW_ERROR_INVALID_IMAGE_SIZE;
       goto done;
@@ -1000,8 +1025,8 @@ micro_draw_from_ppm(const char* filename, MicroDrawCanvas **canvas)
       fread(num_buff + position, 1, 1, file);
       position++;
     } while (!_micro_draw_is_whitespace(num_buff[position-1]) && position < 30);
-    canvas->height = atoi(num_buff);
-    if (canvas->height == 0)
+    height = atoi(num_buff);
+    if (height == 0)
     {
       error = MICRO_DRAW_ERROR_INVALID_IMAGE_SIZE;
       goto done;
@@ -1015,7 +1040,7 @@ micro_draw_from_ppm(const char* filename, MicroDrawCanvas **canvas)
     int position = 0;
     do
     {
-      fread(num_buff + position, 1, 1, file);
+      MICRO_DRAW_FREAD(num_buff + position, 1, 1, file);
       position++;
     } while (!_micro_draw_is_whitespace(num_buff[position-1]) && position < 30);
     color_max = atoi(num_buff);
@@ -1029,17 +1054,16 @@ micro_draw_from_ppm(const char* filename, MicroDrawCanvas **canvas)
   // Parse raster ----------------------------------------------------
   
   // TODO
-  (void) data;
-  (void) data_width;
-  (void) data_height;
-  (void) pixel;
+  (void) canvas;
+  (void) width;
+  (void) height;
   (void) color_max;
   (void) file_type;
   
   assert(0 && "Not implemented");
   
  done:
-  fclose(file);
+  MICRO_DRAW_FCLOSE(file);
   return error;
 }
 

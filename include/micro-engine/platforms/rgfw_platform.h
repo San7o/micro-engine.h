@@ -8,8 +8,6 @@
 
 #include "../micro-platform.h"
 
-extern MicroPlatform rgfw_platform;
-
 //
 // Implementation
 //
@@ -65,8 +63,6 @@ static void rgfw_platform_draw_frame(unsigned char* data, int width, int height)
 {
   if (!_rgfw_window || !_rgfw_surface) return;
 
-  // TODO: assertions
-  
   memcpy(_rgfw_surface->data, data, width * height * 4);
 
   RGFW_window_blitSurface(_rgfw_window, _rgfw_surface);
@@ -229,7 +225,39 @@ static bool rgfw_platform_get_key(MicroKey key)
   return RGFW_window_isKeyDown(_rgfw_window, rgfw_key);
 }
 
-MicroPlatform rgfw_platform = {
+static void rgfw_platform_print(const char* msg)
+{
+  printf(msg);
+}
+
+static void* rgfw_platform_open(const char* path, MicroFileMode mode)
+{
+  switch (mode)
+  {
+  case MICRO_FILE_MODE_READ:   return fopen(path, "r");
+  case MICRO_FILE_MODE_WRITE:  return fopen(path, "w+");
+  }
+
+  return NULL;
+}
+
+static void rgfw_platform_close(void* handle)
+{
+  fclose(handle);
+}
+
+static size_t rgfw_platform_read(void* handle, void* buffer, size_t size)
+{
+  return fread(buffer, 1, size, handle);
+}
+
+static size_t rgfw_platform_write(void* handle, void* buffer, size_t size)
+{
+  return fwrite(buffer, 1, size, handle);
+}
+
+// Provide a platform
+MicroPlatform micro_platform = {
   .init              = rgfw_platform_init,
   .terminate         = rgfw_platform_terminate,
   .pool_events       = rgfw_pool_events,
@@ -237,6 +265,11 @@ MicroPlatform rgfw_platform = {
   .sleep_ms          = rgfw_platform_sleep_ms,
   .get_ticks_ms      = rgfw_platform_get_ticks_ms,
   .get_key           = rgfw_platform_get_key,
+  .print             = rgfw_platform_print,
+  .open              = rgfw_platform_open,
+  .close             = rgfw_platform_close,
+  .read              = rgfw_platform_read,
+  .write             = rgfw_platform_write,
 };
 
 #endif // RGFW_PLATFORM_IMPLEMENTATION

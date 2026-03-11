@@ -67,14 +67,9 @@ MicroDrawText info_text = {
   .scale = 0.3,
 };
 
-MicroPlatform set_micro_app_platform(void)
-{
-  return rgfw_platform;
-}
-
 bool micro_app_setup(void)
 {
-  micro_app_platform.init("hello app", SCREEN_WIDTH, SCREEN_HEIGHT);
+  micro_platform.init("hello app", SCREEN_WIDTH, SCREEN_HEIGHT);
   micro_log_init();
   micro_draw_canvas_init(&canvas, SCREEN_WIDTH, SCREEN_HEIGHT, MICRO_DRAW_RGBA8);
   return true;
@@ -82,26 +77,26 @@ bool micro_app_setup(void)
 
 bool micro_app_update(float delta_time)
 {
-  if (micro_app_platform.get_key(MICRO_KEY_ESCAPE))
+  if (micro_platform.get_key(MICRO_KEY_ESCAPE))
     return false;
 
   double moveSpeed = delta_time / 1000.0 * 5.0; //the constant value is in squares/second
   double rotSpeed = delta_time / 1000.0 * 3.0; //the constant value is in radians/second
   
-  if(micro_app_platform.get_key(MICRO_KEY_UP)
-     || micro_app_platform.get_key(MICRO_KEY_W))
+  if(micro_platform.get_key(MICRO_KEY_UP)
+     || micro_platform.get_key(MICRO_KEY_W))
   {
     if(world_map[(int)(posX + dirX * moveSpeed)][(int)(posY)] == false) posX += dirX * moveSpeed;
     if(world_map[(int)(posX)][(int)(posY + dirY * moveSpeed)] == false) posY += dirY * moveSpeed;
   }
-  if(micro_app_platform.get_key(MICRO_KEY_DOWN)
-     || micro_app_platform.get_key(MICRO_KEY_S))
+  if(micro_platform.get_key(MICRO_KEY_DOWN)
+     || micro_platform.get_key(MICRO_KEY_S))
   {
     if(world_map[(int)(posX - dirX * moveSpeed)][(int)(posY)] == false) posX -= dirX * moveSpeed;
     if(world_map[(int)(posX)][(int)(posY - dirY * moveSpeed)] == false) posY -= dirY * moveSpeed;
   }
-  if(micro_app_platform.get_key(MICRO_KEY_RIGHT)
-     || micro_app_platform.get_key(MICRO_KEY_D))
+  if(micro_platform.get_key(MICRO_KEY_RIGHT)
+     || micro_platform.get_key(MICRO_KEY_D))
   {
     double oldDirX = dirX;
     dirX = dirX * cos(-rotSpeed) - dirY * sin(-rotSpeed);
@@ -110,8 +105,8 @@ bool micro_app_update(float delta_time)
     planeX = planeX * cos(-rotSpeed) - planeY * sin(-rotSpeed);
     planeY = oldPlaneX * sin(-rotSpeed) + planeY * cos(-rotSpeed);
   }
-  if(micro_app_platform.get_key(MICRO_KEY_LEFT)
-     || micro_app_platform.get_key(MICRO_KEY_A))
+  if(micro_platform.get_key(MICRO_KEY_LEFT)
+     || micro_platform.get_key(MICRO_KEY_A))
   {
     double oldDirX = dirX;
     dirX = dirX * cos(rotSpeed) - dirY * sin(rotSpeed);
@@ -122,7 +117,7 @@ bool micro_app_update(float delta_time)
   }
 
   #ifndef __EMSCRIPTEN__
-  micro_app_platform.sleep_ms(16);
+  micro_platform.sleep_ms(16);
   #endif
   return true;
 }
@@ -231,7 +226,7 @@ bool micro_app_draw(void)
   }
 
   micro_draw_text(&canvas, info_text, white);
-  micro_app_platform.draw_frame(canvas.data, canvas.width, canvas.height);
+  micro_platform.draw_frame(canvas.data, canvas.width, canvas.height);
   return true;
 }
 
@@ -239,5 +234,5 @@ void micro_app_cleanup(void)
 {
   micro_draw_canvas_free(&canvas);
   micro_log_close();
-  micro_app_platform.terminate();
+  micro_platform.terminate();
 }

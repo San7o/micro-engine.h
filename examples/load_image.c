@@ -14,16 +14,11 @@
 
 MicroDrawCanvas canvas = {0};
 
-MicroPlatform set_micro_app_platform(void)
-{
-  return rgfw_platform;
-}
-
 bool micro_app_setup(void)
 {
   int width  = 600;
   int height = 500;
-  micro_app_platform.init("hello app", width, height);
+  micro_platform.init("hello app", width, height);
   micro_log_init();
   micro_draw_canvas_init(&canvas, width, height, MICRO_DRAW_RGBA8);
 
@@ -53,14 +48,14 @@ bool micro_app_setup(void)
 bool micro_app_update(float delta_time)
 {
   (void) delta_time;
-  if (micro_app_platform.get_key(MICRO_KEY_ESCAPE))
+  if (micro_platform.get_key(MICRO_KEY_ESCAPE))
     return false;
   return true;
 }
 
 bool micro_app_draw(void)
 {
-  micro_app_platform.draw_frame(canvas.data, canvas.width, canvas.height);
+  micro_platform.draw_frame(canvas.data, canvas.width, canvas.height);
   return true;
 }
 
@@ -68,5 +63,5 @@ void micro_app_cleanup(void)
 {
   micro_draw_canvas_free(&canvas);
   micro_log_close();
-  micro_app_platform.terminate();
+  micro_platform.terminate();
 }

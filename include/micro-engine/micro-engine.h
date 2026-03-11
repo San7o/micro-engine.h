@@ -16,19 +16,24 @@
 #ifndef MICRO_ENGINE
 #define MICRO_ENGINE
 
+//
+// Memory allocation
+//
+
+// Platform abstraction
+// It provides a global `micro_platform` to access it
+#include "micro-platform.h"
+
 #ifdef MICRO_ENGINE_IMPLEMENTATION
   #define MICRO_ARENA_IMPLEMENTATION
   #define MICRO_LOG_IMPLEMENTATION
+  #define MICRO_DRAW_PPM
   #define MICRO_DRAW_IMPLEMENTATION
 
   // External
   #define STB_IMAGE_IMPLEMENTATION
   #define STB_TRUETYPE_IMPLEMENTATION
 #endif
-
-//
-// Memory allocation
-//
 
 #define MICRO_ARENA_GLOBAL
 //#define MICRO_ARENA_DEBUG
@@ -46,12 +51,17 @@
   #define MICRO_ENGINE_MEMORY_SIZE (4 * 1024 * 1024) // bytes
 #endif
 
-
 #include "micro-log.h"
-#define MICRO_LA_IMPLEMENTATION
 #include "micro-la.h"
+
+#define MICRO_DRAW_FOPEN(...)  micro_platform.open(__VA_ARGS__)
+#define MICRO_DRAW_FCLOSE(...) micro_platform.close(__VA_ARGS__)
+#define MICRO_DRAW_FREAD(buff, size, nmemb, stream)  \
+  micro_platform.read(stream, buff, (size) * (nmemb))
+#define MICRO_DRAW_FWRITE(buff, size, nmemb, stream)  \
+  micro_platform.write(stream, buff, (size) * (nmemb))
+#define MICRO_DRAW_OUT(...)    micro_platform.print(__VA_ARGS__)
 #include "micro-draw.h"
-#include "micro-platform.h"
 
 // External
 #include "external/stb_image.h"

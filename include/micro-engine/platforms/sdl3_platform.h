@@ -8,8 +8,6 @@
 
 #include "../micro-platform.h"
 
-extern MicroPlatform sdl3_platform;
-
 //
 // Implementation
 //
@@ -176,7 +174,39 @@ static bool sdl3_platform_get_key(MicroKey key)
   return key_states[scan_code];
 }
 
-MicroPlatform sdl3_platform = {
+static void sdl3_platform_print(const char* msg)
+{
+  printf(msg);
+}
+
+static void* sdl3_platform_open(const char* path, MicroFileMode mode)
+{
+  switch (mode)
+  {
+  case MICRO_FILE_MODE_READ:   return fopen(path, "r");
+  case MICRO_FILE_MODE_WRITE:  return fopen(path, "w+");
+  }
+
+  return NULL;
+}
+
+static void sdl3_platform_close(void* handle)
+{
+  fclose(handle);
+}
+
+static size_t sdl3_platform_read(void* handle, void* buffer, size_t size)
+{
+  return fread(buffer, 1, size, handle);
+}
+
+static size_t sdl3_platform_write(void* handle, void* buffer, size_t size)
+{
+  return fwrite(buffer, 1, size, handle);
+}
+
+// Provide a platform
+MicroPlatform micro_platform = {
   .init              = sdl3_platform_init,
   .terminate         = sdl3_platform_terminate,
   .pool_events       = sdl3_pool_events,
@@ -184,6 +214,11 @@ MicroPlatform sdl3_platform = {
   .sleep_ms          = sdl3_platform_sleep_ms,
   .get_ticks_ms      = sdl3_platform_get_ticks_ms,
   .get_key           = sdl3_platform_get_key,
+  .print             = sdl3_platform_print,
+  .open              = sdl3_platform_open,
+  .close             = sdl3_platform_close,
+  .read              = sdl3_platform_read,
+  .write             = sdl3_platform_write,
 };
 
 #endif // SDL3_PLATFORM_IMPLEMENTATION

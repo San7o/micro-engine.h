@@ -69,14 +69,9 @@ void audio_data_callback(ma_device* pDevice, void* pOutput,
   (void)pInput;
 }
 
-MicroPlatform set_micro_app_platform(void)
-{
-  return sdl3_platform;
-}
-
 bool micro_app_setup(void)
 {
-  micro_app_platform.init("hello app", WINDOW_WIDTH, WINDOW_HEIGHT);
+  micro_platform.init("hello app", WINDOW_WIDTH, WINDOW_HEIGHT);
   micro_log_init();
   micro_draw_canvas_init(&canvas, WINDOW_WIDTH, WINDOW_HEIGHT, MICRO_DRAW_RGBA8);
 
@@ -117,7 +112,7 @@ bool micro_app_setup(void)
 
 bool micro_app_update(float delta_time)
 {
-  if (micro_app_platform.get_key(MICRO_KEY_ESCAPE))
+  if (micro_platform.get_key(MICRO_KEY_ESCAPE))
     return false;
   
   sprintf(fps_str, "FPS: %.2f", 1.0 / (delta_time / 1000.0));
@@ -175,8 +170,8 @@ bool micro_app_draw(void)
   
   micro_draw_text(&canvas, fps_text, red);
   
-  micro_app_platform.draw_frame(canvas.data, canvas.width, canvas.height);
-  micro_app_platform.sleep_ms(64);
+  micro_platform.draw_frame(canvas.data, canvas.width, canvas.height);
+  micro_platform.sleep_ms(64);
   return true;
 }
 
@@ -184,5 +179,5 @@ void micro_app_cleanup(void)
 {
   micro_draw_canvas_free(&canvas);
   micro_log_close();
-  micro_app_platform.terminate();
+  micro_platform.terminate();
 }
