@@ -13,6 +13,10 @@
 #ifndef MICRO_FFT_H
 #define MICRO_FFT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //
 // Api
 //
@@ -100,4 +104,8 @@ void micro_fft(const float* in_frames, float *out_frequencies,
 
 #endif // MICRO_FFT_IMPLEMENTATION
 
+#ifdef __cplusplus
+}
+#endif
+  
 #endif // MICRO_FFT_H

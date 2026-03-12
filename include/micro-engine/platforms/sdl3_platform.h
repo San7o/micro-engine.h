@@ -8,6 +8,10 @@
 
 #include "../micro-platform.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //
 // Implementation
 //
@@ -224,5 +228,9 @@ MicroPlatform micro_platform = {
 };
 
 #endif // SDL3_PLATFORM_IMPLEMENTATION
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SDL3_PLATFORM_H

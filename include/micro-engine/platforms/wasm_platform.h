@@ -8,6 +8,10 @@
 
 #include "../micro-platform.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Implemented in javascript
 extern bool js_platform_init(const char* title, int width, int height);
 extern bool js_platform_terminate();
@@ -241,5 +245,9 @@ MicroPlatform micro_platform = {
 };
 
 #endif // WASM_PLATFORM_IMPLEMENTATION
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // WASM_PLATFORM_H

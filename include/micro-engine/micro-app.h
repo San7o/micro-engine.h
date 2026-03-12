@@ -12,6 +12,10 @@
 #include <emscripten.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // You need to provide an implementation to these symbols
 
 bool micro_app_setup(void);
@@ -80,4 +84,8 @@ int main(void)
 #endif // WASM_PLATFORM_H
 #endif // MICRO_APP_MAIN
 
+#ifdef __cplusplus
+}
+#endif
+ 
 #endif // MICRO_APP_H

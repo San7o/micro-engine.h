@@ -8,6 +8,10 @@
 
 #include "../micro-platform.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //
 // Implementation
 //
@@ -274,5 +278,9 @@ MicroPlatform micro_platform = {
 };
 
 #endif // RGFW_PLATFORM_IMPLEMENTATION
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // RGFW_PLATFORM_H

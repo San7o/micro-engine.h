@@ -6,6 +6,10 @@
 #ifndef _MICRO_KEY_H
 #define _MICRO_KEY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum MicroKey
 {
   MICRO_KEY_NONE = 0,
@@ -141,5 +145,9 @@ typedef enum MicroKey
   
   MICRO_KEY_LAST = MICRO_KEY_MENU
 } MicroKey;
+
+#ifdef __cplusplus
+}
+#endif
   
 #endif // _MICRO_KEY_H

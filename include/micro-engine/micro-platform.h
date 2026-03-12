@@ -9,6 +9,10 @@
 #include "micro-key.h"
 #include "micro-types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MICRO_FILE_MODE_READ   0
 #define MICRO_FILE_MODE_WRITE  1
 
@@ -37,5 +41,9 @@ typedef struct MicroPlatform {
 
 // Global platform
 extern MicroPlatform micro_platform;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // MICRO_PLATFORM_H

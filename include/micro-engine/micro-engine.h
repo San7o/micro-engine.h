@@ -16,6 +16,10 @@
 #ifndef MICRO_ENGINE
 #define MICRO_ENGINE
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //
 // Memory allocation
 //
@@ -78,5 +82,9 @@
   micro_platform.write(stream, buff, (size) * (nmemb))
 #define MICRO_DRAW_OUT(...)    micro_platform.print(__VA_ARGS__)
 #include "micro-draw.h"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // MICRO_ENGINE
