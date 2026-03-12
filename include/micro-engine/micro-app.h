@@ -21,16 +21,18 @@ void micro_app_cleanup(void);
 
 #ifdef MICRO_APP_MAIN
 
+static long unsigned int _micro_app_prev_time = 0;
 #ifdef __EMSCRIPTEN__
-static void _micro_app_loop(void* prev_time_ptr)
+void _micro_app_loop(void* unused)
 #else
-static bool _micro_app_loop(void* prev_time_ptr)
+bool _micro_app_loop(void* unused)
 #endif
 {
-  long unsigned int *prev_time = ((long unsigned int*) prev_time_ptr);
+  (void) unused;
+  
   long unsigned int time = micro_platform.get_ticks_ms();
-  long unsigned int delta = time - *prev_time;
-  *prev_time = time;
+  long unsigned int delta = time - _micro_app_prev_time;
+  _micro_app_prev_time = time;
 
   if (!micro_app_update(delta))  // user implemented
     goto error;
@@ -54,25 +56,28 @@ static bool _micro_app_loop(void* prev_time_ptr)
 #endif
 }
 
+#ifndef WASM_PLATFORM_H
+// Wasm provides its own loop in javascript
+
 int main(void)
 {
   if (!micro_app_setup())     // user implemented
     return 1;
 
   int fps = 60;
-  long unsigned int prev_time = micro_platform.get_ticks_ms();
+  _micro_app_prev_time = micro_platform.get_ticks_ms();
   
   #ifdef __EMSCRIPTEN__
-  emscripten_set_main_loop_arg(_micro_app_loop, &prev_time, fps, true);
+  emscripten_set_main_loop_arg(_micro_app_loop, NULL, fps, true);
   #else
   (void) fps;
-  while (_micro_app_loop(&prev_time)) {}
+  while (_micro_app_loop(NULL)) {}
   #endif
 
   micro_app_cleanup();   // user implemented
   return 0;
 }
-
+#endif // WASM_PLATFORM_H
 #endif // MICRO_APP_MAIN
 
 #endif // MICRO_APP_H

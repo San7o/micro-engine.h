@@ -291,8 +291,10 @@ extern "C" {
   #endif
   #include <pthread.h>
 #endif
-#ifndef size_t
-  #define size_t long unsigned int
+  
+#ifndef _SIZE_T_DEFINED
+  #define _SIZE_T_DEFINED
+  typedef __SIZE_TYPE__ size_t;
 #endif
 #ifndef true
   #define true  1
@@ -497,6 +499,9 @@ typedef struct {
   #endif // MICRO_LOG_MULTITHREADED
 } MicroLog;
 
+// Format string to [out] buffer (does not allocate)
+MICRO_LOG_DEF void micro_log_format(char* out, const char* fmt, ...);
+  
 //
 // Global logger functions
 //
@@ -1778,19 +1783,6 @@ _micro_log_write_impl(MicroLog *micro_log,
 #undef COLOR2
 }
 
-MICRO_LOG_DEF micro_log_error
-_micro_log_print_outputs(MicroLog *micro_log, const char* fmt, ...)
-{
-  micro_log_error error;
-  _micro_log_va_list args;
-
-  _micro_log_va_start(args, fmt);
-  error = _micro_log_print_outputs_args(micro_log, fmt, args);
-  _micro_log_va_end(args);
-  
-  return error;
-}
-
 static char* _micro_log_strcat_and_advance(char* dest, const char* src)
 {
   while (*src)
@@ -1821,8 +1813,8 @@ static char* _micro_log_itoa(long val, char* buf, int base)
   return buf;
 }
 
-static void _micro_log_format(char* out, const char* fmt,
-                              _micro_log_va_list args)
+static void _micro_log_vformat(char* out, const char* fmt,
+                               _micro_log_va_list args)
 {
   while (*fmt)
   {
@@ -1889,16 +1881,24 @@ static void _micro_log_format(char* out, const char* fmt,
   *out = '\0';
 }
 
-MICRO_STATIC_ASSERT(_MICRO_LOG_OUT_MAX == (1 << 4),
-                    should_also_update_micro_log_print_outputs_args);
+MICRO_LOG_DEF void micro_log_format(char* out, const char* fmt, ...)
+{
+  _micro_log_va_list args;
+  _micro_log_va_start(args, fmt);
+
+  _micro_log_vformat(out, fmt, args);
+  
+  _micro_log_va_end(args);
+}
+
 MICRO_LOG_DEF micro_log_error
-_micro_log_print_outputs_args(MicroLog *micro_log,
-                              const char* fmt,
+_micro_log_print_outputs_args(MicroLog *micro_log, const char* fmt,
                               _micro_log_va_list args)
 {
   micro_log_error error = MICRO_LOG_OK;
   char buff[MICRO_LOG_MAX_STRING_SIZE] = {0};
-  _micro_log_format(buff, fmt, args);
+
+  _micro_log_vformat(buff, fmt, args);
   
   if (micro_log->out_bitfield & MICRO_LOG_OUT_STDOUT)
   {
@@ -1939,6 +1939,19 @@ _micro_log_print_outputs_args(MicroLog *micro_log,
 
  done:
   return error;  
+}
+
+MICRO_LOG_DEF micro_log_error
+_micro_log_print_outputs(MicroLog *micro_log, const char* fmt, ...)
+{
+  micro_log_error ret;
+  
+  _micro_log_va_list args;
+  _micro_log_va_start(args, fmt);
+  ret = _micro_log_print_outputs_args(micro_log, fmt, args);
+  _micro_log_va_end(args);
+
+  return ret;
 }
 
 #undef __MICRO_LOG_LOCK

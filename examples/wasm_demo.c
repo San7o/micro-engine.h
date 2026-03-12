@@ -3,61 +3,57 @@
 // Mail:    giovanni.santini@proton.me
 // Github:  @San7o
 
-#define MICRO_ENGINE_MEMORY_SIZE (20 * 1024 * 1024)
 #include <micro-engine/micro-engine.h>
-
-#define STB_IMAGE_IMPLEMENTATION
-#include <micro-engine/external/stb_image.h>
+#define WASM_PLATFORM_IMPLEMENTATION
+#include <micro-engine/platforms/wasm_platform.h>
 
 #define MICRO_APP_MAIN
 #include <micro-engine/micro-app.h>
 
-#define RGFW_PLATFORM_IMPLEMENTATION
-#include <micro-engine/platforms/rgfw_platform.h>
-
 MicroDrawCanvas canvas = {0};
+unsigned char red[4]  = {255, 0, 0, 255};
+unsigned char blue[4] = {0, 0, 255, 255};
+MicroDrawText hello_text = {
+  .text  = "hello, micro-engine!",
+  .x     = 10,
+  .y     = 100,
+  .scale = 0.5,
+};
+MicroDrawText fps_text = {
+  .text  = "",
+  .x     = 10,
+  .y     = 10,
+  .scale = 0.3,
+};
+char fps_str[20] = {0};
 
 bool micro_app_setup(void)
 {
-  int width  = 600;
-  int height = 500;
+  int width  = 800;
+  int height = 600;
   micro_platform.init("hello app", width, height);
   micro_log_init();
   micro_draw_canvas_init(&canvas, width, height, MICRO_DRAW_RGBA8);
-
-  int x,y,n;
-  const char* img_path = "utils/micro-engine-marketing.jpg";
-  unsigned char *data = stbi_load(img_path, &x, &y, &n, 4);
-  if (!data)
-  {
-    micro_log_error("Error opening image: %s", img_path);
-    return false;
-  }
-
-  micro_log_info("image info: x: %d, y: %d, n: %d", x, y, n);
-
-  MicroDrawCanvas img_canvas = {
-    .data   = data,
-    .width  = x,
-    .height = y,
-    .pixel  = MICRO_DRAW_RGBA8,
-  };
-  micro_draw_scaled(&img_canvas, &canvas);
-  
-  stbi_image_free(data);
   return true;
 }
 
 bool micro_app_update(float delta_time)
 {
-  (void) delta_time;
   if (micro_platform.get_key(MICRO_KEY_ESCAPE))
     return false;
+  
+  micro_log_format(fps_str, "FPS: %f", 1.0 / (delta_time / 1000.0));
+  fps_text.text = &fps_str[0];
+    
   return true;
 }
 
 bool micro_app_draw(void)
 {
+  micro_draw_clear(&canvas, blue);
+  micro_draw_text(&canvas, hello_text, red);
+  micro_draw_text(&canvas, fps_text, red);
+
   micro_platform.draw_frame(canvas.data, canvas.width, canvas.height);
   return true;
 }

@@ -30,9 +30,18 @@
   #define MICRO_DRAW_PPM
   #define MICRO_DRAW_IMPLEMENTATION
 
-  // External
-  #define STB_IMAGE_IMPLEMENTATION
-  #define STB_TRUETYPE_IMPLEMENTATION
+  // Provide a memset implementation for -nostdlib environments
+  // This is required since the compiler may generate a call to
+  // memset
+  __attribute__((weak))
+  void* memset(void* dest, int c, unsigned long n)
+  {
+    volatile unsigned char* p = (volatile unsigned char*)dest;
+    while (n--) {
+      *p++ = (unsigned char)c;
+    }
+    return dest;
+  }
 #endif
 
 #ifndef MICRO_ENGINE_MEMORY_SIZE
@@ -69,9 +78,5 @@
   micro_platform.write(stream, buff, (size) * (nmemb))
 #define MICRO_DRAW_OUT(...)    micro_platform.print(__VA_ARGS__)
 #include "micro-draw.h"
-
-// External
-#include "external/stb_image.h"
-#include "external/stb_truetype.h"
 
 #endif // MICRO_ENGINE

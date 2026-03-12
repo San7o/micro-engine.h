@@ -7,16 +7,22 @@ own style and requirements. Here is a general overview of the
 rendering techniques I have played with:
 
 - rasterization: this is the most popular technique for real time
-  rendering since we have hardware that can do it fast. Its primitive
-  is the vertex, which forms triangles in 3D space. A vertex may also
+  rendering since we have hardware that can do it fast, and it is the
+  default technique in the engine. Its primitive is the triangle,
+  which is composed of three vertices in 3D space. A vertex may also
   store a color or a position in a texture (often called `uv`
-  coordinates). Given a triangle, the renderer (whether software or
-  hardware accelerated) will iterate over discrete pixels inside the
-  triangle and color them based on a coloring algorithm or program
-  (fragment shader). For 3D scene, we need to project the triangle
-  from its local space to global space, then to camera space, clip
-  space and finally to the screen where we can apply the resterizaiton
-  technique.
+  coordinates). Given a triangle, after projecting it to the screen,
+  the renderer (whether software or hardware accelerated) will
+  interpolate over discrete pixels inside the triangle and color them
+  based on a coloring algorithm or program (fragment shader).  This
+  "projection" is achieved by multiplying together three matrices: the
+  `model` or `world` matrix which translates a vertex to its position
+  in world space, the `view` matrix which shift and rotates the world
+  based on the camera position (If the camera moves 5 feet to the
+  right, it’s mathematically the same as moving the entire world 5
+  feet to the left), and `projection` matrix which applies perspective
+  and field-of-view; this ultimately maps the vertices inside a cube
+  called the Canonical Cube where the GPU can work with.
 - ray tracing: the general idea is to shoot a ray (which is just a
   line) for each pixel (sometimes more than one ray per pixel) which
   interact with the scene and computes the color of the pixel. We
@@ -46,6 +52,7 @@ rendering techniques I have played with:
   do this when we have a dataset of points, for example while doing
   photogrammetry where we want to reconstruct 3D objects from
   images. Or we may want to convert these points to a mesh.
+  We could use both ray tracing or rasterization for rendering.
   - gaussian / triangle splatting: instead of using points as
     primitives, we use 3D gaussians or triangles. We learn the
     properties of the primitive (color, dimensions...) via a neural

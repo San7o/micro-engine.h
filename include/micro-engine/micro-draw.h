@@ -325,7 +325,12 @@ micro_draw_from_ppm(const char *filename, MicroDrawCanvas **canvas);
 
 #ifdef MICRO_DRAW_IMPLEMENTATION
 
-#include <assert.h>
+#define micro_assert(cond) \
+  do {                  \
+    if (!(cond)) {            \
+      __builtin_trap();       \
+    }                         \
+  } while (0)
 
 #ifndef MICRO_STATIC_ASSERT
 #define MICRO_STATIC_ASSERT(cond, msg)                  \
@@ -390,8 +395,8 @@ MICRO_DRAW_DEF void
 micro_draw_color_to_rgba8(unsigned char* color_src, MicroDrawPixel pixel_src,
                           unsigned char color_dest[4])
 {
-  assert(micro_draw_get_channels(MICRO_DRAW_RGBA8) == 4);
-  assert(micro_draw_get_channel_size(MICRO_DRAW_RGBA8) == 1);
+  micro_assert(micro_draw_get_channels(MICRO_DRAW_RGBA8) == 4);
+  micro_assert(micro_draw_get_channel_size(MICRO_DRAW_RGBA8) == 1);
   
   switch(pixel_src)
   {
@@ -416,8 +421,8 @@ MICRO_DRAW_DEF void
 micro_draw_color_from_rgba8(unsigned char color_src[4],
                             unsigned char *color_dest, MicroDrawPixel pixel_dest)
 {
-  assert(micro_draw_get_channels(MICRO_DRAW_RGBA8) == 4);
-  assert(micro_draw_get_channel_size(MICRO_DRAW_RGBA8) == 1);
+  micro_assert(micro_draw_get_channels(MICRO_DRAW_RGBA8) == 4);
+  micro_assert(micro_draw_get_channel_size(MICRO_DRAW_RGBA8) == 1);
 
   switch(pixel_dest)
   {
@@ -438,8 +443,8 @@ MICRO_DRAW_DEF void
 micro_draw_color_convert(unsigned char *color_src, MicroDrawPixel pixel_src,
                          unsigned char *color_dest, MicroDrawPixel pixel_dest)
 {
-  assert(micro_draw_get_channels(MICRO_DRAW_RGBA8) == 4);
-  assert(micro_draw_get_channel_size(MICRO_DRAW_RGBA8) == 1);
+  micro_assert(micro_draw_get_channels(MICRO_DRAW_RGBA8) == 4);
+  micro_assert(micro_draw_get_channel_size(MICRO_DRAW_RGBA8) == 1);
 
   unsigned char color_rgba[4] = {0};
   micro_draw_color_to_rgba8(color_src, pixel_src, color_rgba);
@@ -1208,7 +1213,7 @@ micro_draw_from_ppm(const char* filename, MicroDrawCanvas **canvas)
   (void) color_max;
   (void) file_type;
   
-  assert(0 && "Not implemented");
+  micro_assert(0 && "Not implemented");
   
  done:
   MICRO_DRAW_FCLOSE(file);

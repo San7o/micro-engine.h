@@ -12,17 +12,18 @@ it has no dependencies.
 
 <h2 align=center>  Features </h2>
 
-- high portability
-  - plug your custom memory allocator (`micro-arena.h` is used by
-    default)
+- deisgned for extreme portability
   - pltform is abstracted in `micro-platform.h`, you need to implement
     just a few functions to port the engine. See
     [platforms](./include/micro-engine/platforms)
+  - plug your custom memory allocator (`micro-arena.h` is used by
+    default)
   - no dependencies (the core headers can be compiled without libc)
   - works everywhere C can compile to
+  - easy to create bindings for other languages
 - modularity: everything can be used as a stand-alone header-only
     library, meaning that you can use any part of the engine in your
-    projects
+    own codebase
 - simplicity: you have a raw buffer where you can draw pixels to, the
   rest is in your control
 - [microheaders](https://san7o.github.io/micro-headers/) included:

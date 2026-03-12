@@ -99,21 +99,21 @@ bool micro_app_update(float delta_time)
      || micro_platform.get_key(MICRO_KEY_D))
   {
     double oldDirX = dirX;
-    dirX = dirX * cos(-rotSpeed) - dirY * sin(-rotSpeed);
-    dirY = oldDirX * sin(-rotSpeed) + dirY * cos(-rotSpeed);
+    dirX = dirX * micro_cos(-rotSpeed) - dirY * micro_sin(-rotSpeed);
+    dirY = oldDirX * micro_sin(-rotSpeed) + dirY * micro_cos(-rotSpeed);
     double oldPlaneX = planeX;
-    planeX = planeX * cos(-rotSpeed) - planeY * sin(-rotSpeed);
-    planeY = oldPlaneX * sin(-rotSpeed) + planeY * cos(-rotSpeed);
+    planeX = planeX * micro_cos(-rotSpeed) - planeY * micro_sin(-rotSpeed);
+    planeY = oldPlaneX * micro_sin(-rotSpeed) + planeY * micro_cos(-rotSpeed);
   }
   if(micro_platform.get_key(MICRO_KEY_LEFT)
      || micro_platform.get_key(MICRO_KEY_A))
   {
     double oldDirX = dirX;
-    dirX = dirX * cos(rotSpeed) - dirY * sin(rotSpeed);
-    dirY = oldDirX * sin(rotSpeed) + dirY * cos(rotSpeed);
+    dirX = dirX * micro_cos(rotSpeed) - dirY * micro_sin(rotSpeed);
+    dirY = oldDirX * micro_sin(rotSpeed) + dirY * micro_cos(rotSpeed);
     double oldPlaneX = planeX;
-    planeX = planeX * cos(rotSpeed) - planeY * sin(rotSpeed);
-    planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);
+    planeX = planeX * micro_cos(rotSpeed) - planeY * micro_sin(rotSpeed);
+    planeY = oldPlaneX * micro_sin(rotSpeed) + planeY * micro_cos(rotSpeed);
   }
 
   #ifndef __EMSCRIPTEN__
@@ -123,7 +123,6 @@ bool micro_app_update(float delta_time)
 }
 
 unsigned char gray[4] = { 18, 18, 18, 255};
-#define abs(x) ((x) > 0) ? (x) : -(x)
 
 bool micro_app_draw(void)
 {
@@ -136,13 +135,13 @@ bool micro_app_draw(void)
     double rayDirX = dirX + planeX * cameraX;
     double rayDirY = dirY + planeY * cameraX;
     
-    int mapX = floor(posX);
-    int mapY = floor(posY);
+    int mapX = micro_floor(posX);
+    int mapY = micro_floor(posY);
     double sideDistX;
     double sideDistY;
 
-    double deltaDistX = (rayDirX == 0) ? 1e30 : abs(1 / rayDirX);
-    double deltaDistY = (rayDirY == 0) ? 1e30 : abs(1 / rayDirY);
+    double deltaDistX = (rayDirX == 0) ? 1e30 : micro_abs(1 / rayDirX);
+    double deltaDistY = (rayDirY == 0) ? 1e30 : micro_abs(1 / rayDirY);
 
     double perpWallDist;
     int stepX;
@@ -194,7 +193,7 @@ bool micro_app_draw(void)
     if (side == 0) perpWallDist = (sideDistX - deltaDistX);
     else           perpWallDist = (sideDistY - deltaDistY);
 
-    int lineHeight = floor(SCREEN_HEIGHT / perpWallDist);
+    int lineHeight = micro_floor(SCREEN_HEIGHT / perpWallDist);
 
     int drawStart = -lineHeight / 2 + SCREEN_HEIGHT / 2;
     if (drawStart < 0) drawStart = 0;

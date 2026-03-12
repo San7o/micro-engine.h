@@ -17,6 +17,7 @@
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_timer.h>
 
+#include <stdio.h>
 #include <assert.h>
 
 static SDL_Window*  _sdl_window   = NULL;

@@ -118,8 +118,52 @@ MICRO_LA_DEF Quaternion micro_la_quaternion_prod(Quaternion p, Quaternion q);
 MICRO_LA_DEF Quaternion micro_la_quaternion_recip(Quaternion p);
 MICRO_LA_DEF Quaternion micro_la_quaternion_rotate(Quaternion p, double angle);
 
-#include <math.h>
+#ifndef PI
+  #define PI 3.14159265358979323846f
+#endif
 
+static inline float micro_sin(float x)
+{
+  // 1. Map x to [-PI, PI]
+  while (x >  PI) x -= 2.0f * PI;
+  while (x < -PI) x += 2.0f * PI;
+
+  // 2. Taylor Series (7 terms for high precision)
+  float x2 = x * x;
+  float term = x;
+  float sum = x;
+    
+  // We calculate terms iteratively to avoid large factorial divisions
+  term *= -x2 / (2 * 3); sum += term; // x^3
+  term *= -x2 / (4 * 5); sum += term; // x^5
+  term *= -x2 / (6 * 7); sum += term; // x^7
+  term *= -x2 / (8 * 9); sum += term; // x^9
+    
+  return sum;
+}
+
+static inline float micro_cos(float x)
+{
+  return micro_sin(x + 1.57079632f); // x + PI/2
+}
+
+#ifndef micro_abs
+#define micro_abs(x) ((x) > 0) ? (x) : -(x)
+#endif
+
+static inline float micro_floor(float x)
+{
+  if (x >= 0.0f)
+    return (float)((int)x);
+  
+  int i = (int)x;
+  float f = (float)i;
+  if (f > x)
+    return f - 1.0f;
+  return f;
+}
+
+  
 #define Vec2_IMPL(type, suffix)                             \
   MICRO_LA_DEF Vec2##suffix                                 \
   Vec2##suffix##_scale(Vec2##suffix vec,                    \
@@ -480,7 +524,7 @@ MICRO_LA_DEF Quaternion
 micro_la_quaternion_rotate(Quaternion vec_quaternion, double angle)
 {
   Quaternion rot_quaternion =
-    (Quaternion){ .a = cos(angle / 2), .b = 0, .c = 0, .d = sin(angle / 2)};
+    (Quaternion){ .a = micro_cos(angle / 2), .b = 0, .c = 0, .d = micro_sin(angle / 2)};
   Quaternion rot_quaternion_recip =
     micro_la_quaternion_recip(rot_quaternion);
   Quaternion first_prod =
