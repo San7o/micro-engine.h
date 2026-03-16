@@ -18,8 +18,8 @@ it has no dependencies.
 <h2 align=center>  Features </h2>
 
 - deisgned for extreme portability
-  - pltform is abstracted in `micro-platform.h`, you need to implement
-    just a few functions to port the engine. See
+  - platform is abstracted in `micro-platform.h`, you need to
+    implement just a few functions to port the engine. See
     [platforms](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine/platforms).
   - plug your custom memory allocator (`micro-arena.h` is used by
     default)
