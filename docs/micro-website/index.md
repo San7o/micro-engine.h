@@ -5,11 +5,11 @@ description: A micro game engine
 
 ![](./micro-engine-banner.png)
 
-micro-engine is an header-only game engine. It is composed of several
-independent headers from the beautiful
+micro-engine is an header-only graphics engine. It is composed of
+several independent headers from the beautiful
 [microheaders](https://san7o.github.io/micro-headers/) collection.
 
-Unlike my other game engine,
+Unlike my other graphics engine,
 [Brenta-Engine](https://san7o.github.io/Brenta-Engine/), micro-engine
 favors absolute simplicity over powerful but complex features. It is
 written in C99, graphics are software rendered with a focus on 2D, and
