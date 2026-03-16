@@ -45,5 +45,3 @@ it has no dependencies.
 <div align="center">
   <img src="docs/micro-website/screenshot.jpeg" />
 </div>
-
-MIT licensed.
