@@ -1,4 +1,4 @@
-<h1 align=center>  micro-engine.h </h1>
+![micro-engine-banner](./docs/micro-website/micro-engine-banner.png)
 
 micro-engine is an header-only game engine. It is composed of several
 independent headers from the beautiful
