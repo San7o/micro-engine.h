@@ -127,8 +127,12 @@ echo "Copying robots.txt"
 cp "$ROBOTS_FILE" "$HTML_DIR/robots.txt"
 echo -e "\nSitemap: $BASE_URL/sitemap.txt" >> "$HTML_DIR/robots.txt"
 
+echo "Copying jpeg images"
+cp *.jpeg "$HTML_DIR/"
+
 echo "Copying demo dir"
 mkdir -p "$HTML_DIR/demo"
 cp "$DEMO_DIR"/* "$HTML_DIR/demo"
 
 echo "Done."
+  

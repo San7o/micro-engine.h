@@ -45,4 +45,8 @@ it has no dependencies.
   - micro-platform.h
   - micro-app.h
 
-MIT licensed.
+<h2 align=center>  Screenshots </h2>
+
+<div align="center">
+  <img src="screenshot.jpeg" />
+</div>
