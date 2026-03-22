@@ -34,12 +34,12 @@
 #define COSU_KEY_4 MICRO_KEY_K
 
 typedef enum {
-  COSU_TYPE_NOTE = 0,
-  COSU_TYPE_SLIDER = 1,
+  COSU_TYPE_NOTE      = 0,
+  COSU_TYPE_SLIDER    = 1,
   COSU_TYPE_NEW_COMBO = 2,
-  COSU_TYPE_SPINNER = 3,
+  COSU_TYPE_SPINNER   = 3,
   COSU_TYPE_HOLD_NOTE = 7,
-  COSU_TYPE_ERROR = -1,
+  COSU_TYPE_ERROR     = -1,
 } CosuNoteType;
 
 // A single note
@@ -294,7 +294,13 @@ bool micro_app_setup(int argc, char** argv)
 
 bool micro_app_update(float delta_time)
 {
-  game.note_time += delta_time / 1000;
+  game.delta_time += delta_time / 1000;
+  game.note_time  += delta_time / 1000;
+
+  if (game.delta_time < 1.0 / (double) game.fps)
+    return true;
+
+  game.delta_time = 0;
   
   if (micro_platform.get_key(MICRO_KEY_ESCAPE))
     return false;
@@ -357,7 +363,8 @@ bool micro_app_update(float delta_time)
       cosu_note_list_pop_back(&game.notes);
   }
 
-  // Remove notes that fall outside of the screen
+  // Remove notes that fall outside of the screen, and update
+  // all positions
   CosuNoteListElem *it = game.notes.tail;
   while(it)
   {
@@ -368,8 +375,10 @@ bool micro_app_update(float delta_time)
       micro_log_trace("missed note");
       continue;
     }
-    
-    it = it->next;
+
+    // Update note position
+    it->note.y += 1.0 / (double)game.fps * game.window_height * game.scroll_speed;
+    it = it->prev;
   }
   
   // Generate notes randomly
@@ -435,8 +444,6 @@ bool micro_app_draw(void)
                          },
                          note_color);
 
-    // Update note position
-    it->note.y += 1.0 / game.fps * game.window_height * game.scroll_speed;
     it = it->prev;
   }
 
