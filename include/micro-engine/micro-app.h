@@ -18,8 +18,8 @@ extern "C" {
 
 // You need to provide an implementation to these symbols
 
-bool micro_app_setup(void);
-bool micro_app_update(float delta_time);
+bool micro_app_setup(int argc, char** argv);
+bool micro_app_update(float delta_time_ms);
 bool micro_app_draw(void);
 void micro_app_cleanup(void);
 
@@ -63,9 +63,9 @@ bool _micro_app_loop(void* unused)
 #ifndef WASM_PLATFORM_H
 // Wasm provides its own loop in javascript
 
-int main(void)
+int main(int argc, char **argv)
 {
-  if (!micro_app_setup())     // user implemented
+  if (!micro_app_setup(argc, argv))     // user implemented
     return 1;
 
   int fps = 60;

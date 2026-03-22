@@ -27,8 +27,9 @@ extern "C" {
 
 static RGFW_window*   _rgfw_window   = NULL;
 static RGFW_surface*  _rgfw_surface  = NULL;
+unsigned char*        _rgfw_data     = NULL;
 static struct timeval _rgfw_time;
-
+  
 #ifndef MICRO_ENGINE_MEMORY_SIZE
   #define MICRO_ENTINE_MEMORY_SIZE (5 * 1024 * 1024)
 #endif
@@ -41,14 +42,16 @@ static bool rgfw_platform_init(const char* title, int width, int height)
   int flags = RGFW_windowNoResize | RGFW_windowCenter | RGFW_windowFloating;
   _rgfw_window = RGFW_createWindow(title, 0, 0, width, height, flags);
 
-  unsigned char* data = RGFW_alloc(width * height * 4);
-  _rgfw_surface = RGFW_window_createSurface(_rgfw_window, data, width,
+  _rgfw_data = RGFW_alloc(width * height * 4);
+  _rgfw_surface = RGFW_window_createSurface(_rgfw_window, _rgfw_data, width,
                                             height, RGFW_formatRGBA8);
   return true;
 }
 
 static bool rgfw_platform_terminate(void)
 {
+  if (_rgfw_data)
+    RGFW_free(_rgfw_data);
   if (_rgfw_surface)
     RGFW_surface_free(_rgfw_surface);
   if (_rgfw_window)

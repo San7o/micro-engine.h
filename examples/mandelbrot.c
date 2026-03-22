@@ -38,8 +38,11 @@ int mandelbrot(int x, int y, int width, int height)
   return it;
 }
 
-bool micro_app_setup(void)
+bool micro_app_setup(int argc, char** argv)
 {
+  (void) argc;
+  (void) argv;
+  
   micro_platform.init("mandelbrot", WIDTH, HEIGHT);
   micro_log_init();
   micro_draw_canvas_init(&canvas, WIDTH, HEIGHT, MICRO_DRAW_RGBA8);

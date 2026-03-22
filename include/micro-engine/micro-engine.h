@@ -7,7 +7,7 @@
 // Micro engine
 // ------------
 //
-// Core engine funtionalities.
+// Core engine funtionalities, with some glue.
 //
 // Define `MICRO_ENGINE_IMPLEMENTATION` for including the
 // implementaion.
@@ -51,36 +51,43 @@ extern "C" {
 #ifndef MICRO_ENGINE_MEMORY_SIZE
   #define MICRO_ENGINE_MEMORY_SIZE (4 * 1024 * 1024) // bytes
 #endif
-
+#define MICRO_ENGINE_MALLOC(...)   micro_arena_gmalloc(__VA_ARGS__)
+#define MICRO_ENGINE_FREE(...)     micro_arena_gfree(__VA_ARGS__)
+#define MICRO_ENGINE_REALLOC(...)  micro_arena_grealloc(__VA_ARGS__)
+  
+#define MICRO_ENGINE_FOPEN(...)    micro_platform.open(__VA_ARGS__)
+#define MICRO_ENGINE_FCLOSE(...)   micro_platform.close(__VA_ARGS__)
+#define MICRO_ENGINE_FREAD(buff, size, nmemb, stream)  \
+  micro_platform.read(stream, buff, (size) * (nmemb))
+#define MICRO_ENGINE_FWRITE(buff, size, nmemb, stream)    \
+  micro_platform.write(stream, buff, (size) * (nmemb))
+#define MICRO_ENGINE_OUT(...)      micro_platform.print(__VA_ARGS__)
 #define MICRO_ARENA_GLOBAL
 //#define MICRO_ARENA_DEBUG
 #include "micro-arena.h"
 
-#define MICRO_LOG_MALLOC(...)   micro_arena_gmalloc(__VA_ARGS__)
-#define MICRO_LOG_FREE(...)     micro_arena_gfree(__VA_ARGS__)
-#define MICRO_LOG_REALLOC(...)  micro_arena_grealloc(__VA_ARGS__)
-#define MICRO_LOG_FOPEN(...)    micro_platform.open(__VA_ARGS__)
-#define MICRO_LOG_FCLOSE(...)   micro_platform.close(__VA_ARGS__)
-#define MICRO_LOG_FREAD(buff, size, nmemb, stream)  \
-  micro_platform.read(stream, buff, (size) * (nmemb))
-#define MICRO_LOG_FWRITE(buff, size, nmemb, stream)  \
-  micro_platform.write(stream, buff, (size) * (nmemb))
-#define MICRO_LOG_OUT(...)      micro_platform.print(__VA_ARGS__)
+#define MICRO_LOG_MALLOC(...)   MICRO_ENGINE_MALLOC(__VA_ARGS__)
+#define MICRO_LOG_FREE(...)     MICRO_ENGINE_FREE(__VA_ARGS__)
+#define MICRO_LOG_REALLOC(...)  MICRO_ENGINE_REALLOC(__VA_ARGS__)
+#define MICRO_LOG_FOPEN(...)    MICRO_ENGINE_FOPEN(__VA_ARGS__)
+#define MICRO_LOG_FCLOSE(...)   MICRO_ENGINE_FCLOSE(__VA_ARGS__)
+#define MICRO_LOG_FREAD(...)    MICRO_ENGINE_FREAD(__VA_ARGS__)
+#define MICRO_LOG_FWRITE(...)   MICRO_ENGINE_FWRITE(__VA_ARGS__)
+#define MICRO_LOG_OUT(...)      MICRO_ENGINE_OUT(__VA_ARGS__)
 #include "micro-log.h"
+  
 #include "micro-la.h"
 
-#define STBI_MALLOC(...)       micro_arena_gmalloc(__VA_ARGS__)
-#define STBI_REALLOC(...)      micro_arena_grealloc(__VA_ARGS__)
-#define STBI_FREE(...)         micro_arena_gfree(__VA_ARGS__)
-#define MICRO_DRAW_MALLOC(...) micro_arena_gmalloc(__VA_ARGS__)
-#define MICRO_DRAW_FREE(...)   micro_arena_gfree(__VA_ARGS__)
-#define MICRO_DRAW_FOPEN(...)  micro_platform.open(__VA_ARGS__)
-#define MICRO_DRAW_FCLOSE(...) micro_platform.close(__VA_ARGS__)
-#define MICRO_DRAW_FREAD(buff, size, nmemb, stream)  \
-  micro_platform.read(stream, buff, (size) * (nmemb))
-#define MICRO_DRAW_FWRITE(buff, size, nmemb, stream)  \
-  micro_platform.write(stream, buff, (size) * (nmemb))
-#define MICRO_DRAW_OUT(...)    micro_platform.print(__VA_ARGS__)
+#define STBI_MALLOC(...)       MICRO_ENGINE_MALLOC(__VA_ARGS__)
+#define STBI_REALLOC(...)      MICRO_ENGINE_REALLOC(__VA_ARGS__)
+#define STBI_FREE(...)         MICRO_ENGINE_FREE(__VA_ARGS__)
+#define MICRO_DRAW_MALLOC(...) MICRO_ENGINE_MALLOC(__VA_ARGS__)
+#define MICRO_DRAW_FREE(...)   MICRO_ENGINE_FREE(__VA_ARGS__)
+#define MICRO_DRAW_FOPEN(...)  MICRO_ENGINE_FOPEN(__VA_ARGS__)
+#define MICRO_DRAW_FCLOSE(...) MICRO_ENGINE_FCLOSE(__VA_ARGS__)
+#define MICRO_DRAW_FREAD(...)  MICRO_ENGINE_FREAD(__VA_ARGS__)
+#define MICRO_DRAW_FWRITE(...) MICRO_ENGINE_FWRITE(__VA_ARGS__)
+#define MICRO_DRAW_OUT(...)    MICRO_ENGINE_OUT(__VA_ARGS__)
 #include "micro-draw.h"
 
 #ifdef __cplusplus

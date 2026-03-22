@@ -69,8 +69,11 @@ void audio_data_callback(ma_device* pDevice, void* pOutput,
   (void)pInput;
 }
 
-bool micro_app_setup(void)
+bool micro_app_setup(int argc, char **argv)
 {
+  (void) argc;
+  (void) argv;
+  
   micro_platform.init("hello app", WINDOW_WIDTH, WINDOW_HEIGHT);
   micro_log_init();
   micro_draw_canvas_init(&canvas, WINDOW_WIDTH, WINDOW_HEIGHT, MICRO_DRAW_RGBA8);

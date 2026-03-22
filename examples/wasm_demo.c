@@ -27,8 +27,11 @@ MicroDrawText fps_text = {
 };
 char fps_str[20] = {0};
 
-bool micro_app_setup(void)
+bool micro_app_setup(int argc, char** argv)
 {
+  (void) argc;
+  (void) argv;
+  
   int width  = 800;
   int height = 600;
   micro_platform.init("hello app", width, height);

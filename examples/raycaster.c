@@ -67,8 +67,11 @@ MicroDrawText info_text = {
   .scale = 0.3,
 };
 
-bool micro_app_setup(void)
+bool micro_app_setup(int argc, char** argv)
 {
+  (void) argc;
+  (void) argv;
+  
   micro_platform.init("hello app", SCREEN_WIDTH, SCREEN_HEIGHT);
   micro_log_init();
   micro_draw_canvas_init(&canvas, SCREEN_WIDTH, SCREEN_HEIGHT, MICRO_DRAW_RGBA8);

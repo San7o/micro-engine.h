@@ -17,8 +17,11 @@
 
 MicroDrawCanvas canvas = {0};
 
-bool micro_app_setup(void)
+bool micro_app_setup(int argc, char **argv)
 {
+  (void) argc;
+  (void) argv;
+  
   int width  = 600;
   int height = 500;
   micro_platform.init("hello app", width, height);

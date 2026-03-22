@@ -135,6 +135,7 @@ if (MICRO_ENGINE_BUILD_EXAMPLES)
     add_example(app_example Xrandr)
     add_example(raycaster Xrandr)
     add_example(mandelbrot Xrandr)
+    add_example(cosu Xrandr)    
   endif()
 endif()
 

@@ -346,8 +346,10 @@ void micro_draw_canvas_init(MicroDrawCanvas *canvas,
   canvas->width  = width;
   canvas->height = height;
   canvas->pixel  = pixel;
-  canvas->data   = MICRO_DRAW_MALLOC(width * height
-                                     * micro_draw_get_channels(pixel));
+  canvas->data   = MICRO_DRAW_MALLOC(width *
+                                     height *
+                                     micro_draw_get_channels(pixel) *
+                                     micro_draw_get_channel_size(pixel));
 }
 
 void micro_draw_canvas_free(MicroDrawCanvas *canvas)
