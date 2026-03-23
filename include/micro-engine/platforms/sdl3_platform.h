@@ -32,6 +32,15 @@ static SDL_Surface* _sdl_surface  = NULL;
 #endif
 char memory[MICRO_ENGINE_MEMORY_SIZE] = {0};
 
+static MicroPlatformFeatures sdl3_get_features(void)
+{
+  MicroPlatformFeatures features = 0;
+  features |= MICRO_PLATFORM_FEATURE_WINDOW;
+  features |= MICRO_PLATFORM_FEATURE_INPUT;
+  features |= MICRO_PLATFORM_FEATURE_FS;
+  return features;
+}
+  
 static bool sdl3_platform_init(const char* title, int width, int height)
 {
   micro_arena_ginit(&memory[0], MICRO_ENGINE_MEMORY_SIZE);
@@ -213,6 +222,7 @@ static size_t sdl3_platform_write(void* handle, void* buffer, size_t size)
 
 // Provide a platform
 MicroPlatform micro_platform = {
+  .get_features      = sdl3_get_features,
   .init              = sdl3_platform_init,
   .terminate         = sdl3_platform_terminate,
   .pool_events       = sdl3_pool_events,
@@ -234,3 +244,4 @@ MicroPlatform micro_platform = {
 #endif
 
 #endif // SDL3_PLATFORM_H
+  

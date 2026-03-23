@@ -32,6 +32,14 @@ extern int  js_platform_print(const char* msg);
 #endif
 char buff[MICRO_ENGINE_MEMORY_SIZE];
 
+static MicroPlatformFeatures wasm_get_features(void)
+{
+  MicroPlatformFeatures features = 0;
+  features |= MICRO_PLATFORM_FEATURE_WINDOW;
+  features |= MICRO_PLATFORM_FEATURE_INPUT;
+  return features;
+}
+
 static bool wasm_platform_init(const char* title, int width, int height)
 {
   micro_arena_ginit(&buff[0], MICRO_ENGINE_MEMORY_SIZE);
@@ -230,6 +238,7 @@ static size_t wasm_platform_write(void* handle, void* buffer, size_t size)
 
 // Provide a platform
 MicroPlatform micro_platform = {
+  .get_features      = wasm_get_features,
   .init              = wasm_platform_init,
   .terminate         = wasm_platform_terminate,
   .pool_events       = wasm_pool_events,

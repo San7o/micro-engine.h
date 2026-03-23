@@ -15,11 +15,17 @@ extern "C" {
 
 #define MICRO_FILE_MODE_READ   0
 #define MICRO_FILE_MODE_WRITE  1
-
 typedef int MicroFileMode;
 
-typedef struct MicroPlatform {
+#define MICRO_PLATFORM_FEATURE_WINDOW   (1 << 0)
+#define MICRO_PLATFORM_FEATURE_INPUT    (1 << 1)
+#define MICRO_PLATFORM_FEATURE_FS       (1 << 2)
+// Features flag bitfield
+typedef unsigned long long MicroPlatformFeatures;
   
+typedef struct MicroPlatform {
+
+  MicroPlatformFeatures (*get_features)(void);
   bool (*init)(const char* title, int width, int height);
   bool (*terminate)(void);
   
