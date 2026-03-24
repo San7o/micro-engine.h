@@ -36,9 +36,15 @@ it has no dependencies.
   - [micro-flag.h](https://github.com/San7o/micro-flag.h): parse command line arguments
   - [micro-module.h](https://github.com/San7o/micro-module.h): module / plugin / hot-reloading support
   - [micro-conf.h](https://github.com/San7o/micro-conf.h): config files parsing
+  - [micro-bench.h](https://github.com/San7o/micro-bench.h): benchmarking library
+  - [micro-hash.h](https://github.com/San7o/micro-hash.h): plenty of hash functions
+  - [micro-fswatcher.h](https://github.com/San7o/micro-fswatcher.h): filesystem events
   - micro-fft.h: Fast Furier Trasform implementation
   - micro-platform.h: platform abstraction
   - micro-app.h: event loop
+  - [llist.h](https://github.com/San7o/llist.h): linked list implementation
+  - [hashset.h](https://github.com/San7o/hashset.h)
+  - [hashmap.h](https://github.com/San7o/hashmap.h)
 
 <h2 align=center>  Screenshots </h2>
 
