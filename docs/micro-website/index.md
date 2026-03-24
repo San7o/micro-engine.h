@@ -32,18 +32,24 @@ it has no dependencies.
 - simplicity: you have a raw buffer where you can draw pixels to, the
   rest is in your control
 - [microheaders](https://san7o.github.io/micro-headers/) included:
-  - [micro-draw.h](https://github.com/San7o/micro-draw.h)
-  - [micro-log.h](https://github.com/San7o/micro-log.h)
-  - [micro-la.h](https://github.com/San7o/micro-la.h)
-  - [micro-arena.h](https://github.com/San7o/micro-arena.h)
-  - [micro-tests.h](https://github.com/San7o/micro-tests.h)
-  - [micro-serde.h](https://github.com/San7o/micro-serde.h)
-  - [micro-flag.h](https://github.com/San7o/micro-flag.h)
-  - [micro-module.h](https://github.com/San7o/micro-module.h)
-  - [micro-conf.h](https://github.com/San7o/micro-conf.h)
-  - micro-fft.h
-  - micro-platform.h
-  - micro-app.h
+  - [micro-draw.h](https://github.com/San7o/micro-draw.h): rendering library
+  - [micro-log.h](https://github.com/San7o/micro-log.h): logging library
+  - [micro-la.h](https://github.com/San7o/micro-la.h): linear algebra and other math functions and structures
+  - [micro-arena.h](https://github.com/San7o/micro-arena.h): custom memory allocator
+  - [micro-tests.h](https://github.com/San7o/micro-tests.h): testing framework
+  - [micro-serde.h](https://github.com/San7o/micro-serde.h): serialization / deserialization
+  - [micro-flag.h](https://github.com/San7o/micro-flag.h): parse command line arguments
+  - [micro-module.h](https://github.com/San7o/micro-module.h): module / plugin / hot-reloading support
+  - [micro-conf.h](https://github.com/San7o/micro-conf.h): config files parsing
+  - [micro-bench.h](https://github.com/San7o/micro-bench.h): benchmarking library
+  - [micro-hash.h](https://github.com/San7o/micro-hash.h): plenty of hash functions
+  - [micro-fswatcher.h](https://github.com/San7o/micro-fswatcher.h): filesystem events
+  - micro-fft.h: Fast Furier Trasform implementation
+  - micro-platform.h: platform abstraction
+  - micro-app.h: event loop
+  - [llist.h](https://github.com/San7o/llist.h): linked list implementation
+  - [hashset.h](https://github.com/San7o/hashset.h)
+  - [hashmap.h](https://github.com/San7o/hashmap.h)
 
 <h2 align=center>  Screenshots </h2>
 
