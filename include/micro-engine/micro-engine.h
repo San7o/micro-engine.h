@@ -20,15 +20,13 @@
 extern "C" {
 #endif
 
-//
-// Memory allocation
-//
-
 // Platform abstraction
 // It provides a global `micro_platform` to access it
 #include "micro-platform.h"
 
 #ifdef MICRO_ENGINE_IMPLEMENTATION
+
+  // Core headers
   #define MICRO_ARENA_IMPLEMENTATION
   #define MICRO_LOG_IMPLEMENTATION
   #define MICRO_DRAW_PPM

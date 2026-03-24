@@ -1,0 +1,3 @@
+*.o
+*.so
+hot_reloading
