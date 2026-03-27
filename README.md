@@ -29,7 +29,7 @@ it has no dependencies.
 - [microheaders](https://san7o.github.io/micro-headers/) included:
   - [micro-draw.h](https://github.com/San7o/micro-draw.h): rendering library
   - [micro-log.h](https://github.com/San7o/micro-log.h): logging library
-  - [micro-la.h](https://github.com/San7o/micro-la.h): linear algebra and other math functions and structures
+  - [micro-la.h](https://github.com/San7o/micro-la.h): linear algebra, math functions and structures
   - [micro-arena.h](https://github.com/San7o/micro-arena.h): custom memory allocator
   - [micro-tests.h](https://github.com/San7o/micro-tests.h): testing framework
   - [micro-serde.h](https://github.com/San7o/micro-serde.h): serialization / deserialization
@@ -39,7 +39,7 @@ it has no dependencies.
   - [micro-bench.h](https://github.com/San7o/micro-bench.h): benchmarking library
   - [micro-hash.h](https://github.com/San7o/micro-hash.h): plenty of hash functions
   - [micro-fswatcher.h](https://github.com/San7o/micro-fswatcher.h): filesystem events
-  - micro-fft.h: Fast Furier Trasform implementation
+  - micro-fft.h: Fast Fourier Trasform implementation
   - micro-platform.h: platform abstraction
   - micro-app.h: event loop
   - [llist.h](https://github.com/San7o/llist.h): linked list implementation

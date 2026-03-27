@@ -68,8 +68,48 @@
 //
 //     https://github.com/San7o/micro-headers
 //
-// If you want to see how more advanced memory allocaters work, check
-// out these projects:
+//
+// Implementation info
+// -------------------
+//
+// There are many ways to implement an allocator, with ceratin
+// tradeoffs to choose from.
+//
+//   - linear allocator: The simplest allocator is probably a linear
+//     allocator which is only able to allocate chunks from memory but
+//     not free them. You can think of it as keeping a pointer to the
+//     start of the free memory, and incrementing it by the amount of
+//     memory to be allocated each time. This is often used in arena
+//     allocators due to its simplicity, speed and the fact that you
+//     often free the entire arena all at once when you don't need it
+//     anymore.
+//   - slab alloctor: this is useful when you need to allocate memory
+//     of a known fixed amount. This allocator conceptually resembles
+//     a stack of blocks of free memory: you pop the head to allocate
+//     that block, and you push it back when you free it.
+//   - free list: in this type of allocator, we keep a dynamic list of
+//     free blocks. This allows us to allocate blocks of any size
+//     by resizing or eliminating the free blocks when we allocate,
+//     and expanding them when we free memory. The main disadvantage
+//     is that we need to iterate over the block to find a range
+//     bit enough for our allocation, which takes linear time and
+//     is not ideal for realtime systems.
+//   - buddy system: this is a fast algorythm for allocating memory of
+//     any size. Essentially we divide the memory into blocks with
+//     their size being a power of two. Then when we allocate, we
+//     mark one of these blocks as used, and when we free we mark it
+//     as unused. The problem here is that we may allocate a block
+//     that is much bigger than what we need, creating a lot of
+//     internal fragmentation.
+//     
+// In the real world, more sophisticated allocators actually use more
+// then one algorithm based on the size that needs to be allocated.  A
+// good allocator may also support additional features such as
+// per-thread memory and keeping the allocated memory aligned to some
+// amount.
+//
+// If you want to see more advanced memory allocaters, check out these
+// projects:
 //
 //     https://google.github.io/tcmalloc/overview.html
 //     https://nothings.org/stb/stb_malloc.h
@@ -140,6 +180,10 @@ typedef struct {
 typedef struct {
   char *mem;
   MicroArenaChunkList free_chunks;
+  // In this implementation we store the used chunks because we need
+  // to know how bit was the allocated area. An alternative
+  // implementation would be to store this information behind the
+  // pointer.
   MicroArenaChunkList used_chunks;
   #ifdef MICRO_ARENA_MULTITHREADED
   pthread_mutex_t arena_mutex;
@@ -262,7 +306,7 @@ MICRO_ARENA_DEF void *micro_arena_malloc(MicroArena *ma, size_t size)
       goto exit;
     
     ma->free_chunks.chunks[i].start = ma->free_chunks.chunks[i].start + size;
-    ma->free_chunks.chunks[i].size = ma->free_chunks.chunks[i].size - size;
+    ma->free_chunks.chunks[i].size  = ma->free_chunks.chunks[i].size - size;
 
     #ifdef MICRO_ARENA_MULTITHREADED
     pthread_mutex_unlock(&ma->arena_mutex);
