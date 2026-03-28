@@ -32,24 +32,24 @@ it has no dependencies.
 - simplicity: you have a raw buffer where you can draw pixels to, the
   rest is in your control
 - [microheaders](https://san7o.github.io/micro-headers/) included:
-  - [micro-draw.h](https://github.com/San7o/micro-draw.h): rendering library
-  - [micro-log.h](https://github.com/San7o/micro-log.h): logging library
-  - [micro-la.h](https://github.com/San7o/micro-la.h): linear algebra, math functions and structures
-  - [micro-arena.h](https://github.com/San7o/micro-arena.h): custom memory allocator
-  - [micro-tests.h](https://github.com/San7o/micro-tests.h): testing framework
-  - [micro-serde.h](https://github.com/San7o/micro-serde.h): serialization / deserialization
-  - [micro-flag.h](https://github.com/San7o/micro-flag.h): parse command line arguments
-  - [micro-module.h](https://github.com/San7o/micro-module.h): module / plugin / hot-reloading support
-  - [micro-conf.h](https://github.com/San7o/micro-conf.h): config files parsing
-  - [micro-bench.h](https://github.com/San7o/micro-bench.h): benchmarking library
-  - [micro-hash.h](https://github.com/San7o/micro-hash.h): plenty of hash functions
-  - [micro-fswatcher.h](https://github.com/San7o/micro-fswatcher.h): filesystem events
+  - [micro-draw.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//micro-draw.h): rendering library
+  - [micro-log.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//micro-log.h): logging library
+  - [micro-la.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//micro-la.h): linear algebra, math functions and structures
+  - [micro-arena.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//micro-arena.h): custom memory allocator
+  - [micro-tests.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//micro-tests.h): testing framework
+  - [micro-serde.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//micro-serde.h): serialization / deserialization
+  - [micro-flag.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//micro-flag.h): parse command line arguments
+  - [micro-module.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//micro-module.h): module / plugin / hot-reloading support
+  - [micro-conf.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//micro-conf.h): config files parsing
+  - [micro-bench.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//micro-bench.h): benchmarking library
+  - [micro-hash.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//micro-hash.h): plenty of hash functions
+  - [micro-fswatcher.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//micro-fswatcher.h): filesystem events
   - micro-fft.h: Fast Fourier Trasform implementation
   - micro-platform.h: platform abstraction
   - micro-app.h: event loop
-  - [llist.h](https://github.com/San7o/llist.h): linked list implementation
-  - [hashset.h](https://github.com/San7o/hashset.h)
-  - [hashmap.h](https://github.com/San7o/hashmap.h)
+  - [llist.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//llist.h): linked list implementation
+  - [hashset.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//hashset.h)
+  - [hashmap.h](https://github.com/San7o/micro-engine.h/tree/main/include/micro-engine//hashmap.h)
 
 <h2 align=center>  Screenshots </h2>
 
