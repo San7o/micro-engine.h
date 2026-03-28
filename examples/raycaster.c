@@ -138,8 +138,8 @@ bool micro_app_draw(void)
     double rayDirX = dirX + planeX * cameraX;
     double rayDirY = dirY + planeY * cameraX;
     
-    int mapX = micro_floor(posX);
-    int mapY = micro_floor(posY);
+    int mapX = micro_floorf(posX);
+    int mapY = micro_floorf(posY);
     double sideDistX;
     double sideDistY;
 
@@ -196,7 +196,7 @@ bool micro_app_draw(void)
     if (side == 0) perpWallDist = (sideDistX - deltaDistX);
     else           perpWallDist = (sideDistY - deltaDistY);
 
-    int lineHeight = micro_floor(SCREEN_HEIGHT / perpWallDist);
+    int lineHeight = micro_floorf(SCREEN_HEIGHT / perpWallDist);
 
     int drawStart = -lineHeight / 2 + SCREEN_HEIGHT / 2;
     if (drawStart < 0) drawStart = 0;
