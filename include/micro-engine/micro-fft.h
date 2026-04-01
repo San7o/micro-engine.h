@@ -109,3 +109,43 @@ void micro_fft(const float* in_frames, float *out_frequencies,
 #endif
   
 #endif // MICRO_FFT_H
+
+//
+// FFT ts a very useful algorithm used in many domains.
+//
+//
+// Sound
+// -----
+//
+// Sound is essentially vibration of your ear, coming from a sound
+// source and propagating through space. If the vibration follows some
+// kind of pattern or frequency, then our head can make more sense of
+// that, so overtime it tuned itself to prefere these patterns. There
+// are some properties we give to sound frequency such as its volume
+// (the amplitude), tune (frequency) and timbre (shape).
+//
+// There is a relationship between the lowest frequency that composes
+// a periodic signal (aka the "Fundamental frequency") and the concept
+// of an armonic series, which is a series of frequencies that we
+// percieve as "good sounding".
+//
+// Suppose you are playing a frequency `f` (like the piano's C), then
+// all the frequencies multiples of `f` (`2f`, `3f`, `4f`) would sound
+// nice together, this happens because their sum produces a nice
+// periodic signal.  If you map these frequency to the piano you get
+// the famous piano chords. To do the mapping, you need to remember
+// that each note in the piano multiples the previous one by 2^(1/21).
+//
+// We can find this frequency with the FFT by looking at the distance
+// between the peaks of the most used frequencies.
+//
+// You can also use the FFT to do cool music visualizations, for
+// example by visualizing the frequencies themselves, or using this
+// data as parameters to drive some other kind of visualization
+// (modifying shaped, colors...).
+//
+// One of the most direct ways to use the FFT is for creating an audio
+// equalizer, which simply changes the frequencies in the frequency
+// domain.
+//
+
