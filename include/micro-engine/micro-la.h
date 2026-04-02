@@ -57,6 +57,7 @@
 // TODO
 // ----
 //
+//  - TODO: matrices
 //  - TODO: implement quaternion rotations for any axes
 //  - TODO: add rotations to shapes Rect and Triangle
 //  - TODO: add generic poligons with any number of vertices
