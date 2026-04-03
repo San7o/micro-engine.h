@@ -143,8 +143,8 @@ bool micro_app_draw(void)
     double sideDistX;
     double sideDistY;
 
-    double deltaDistX = (rayDirX == 0) ? 1e30 : micro_abs(1 / rayDirX);
-    double deltaDistY = (rayDirY == 0) ? 1e30 : micro_abs(1 / rayDirY);
+    double deltaDistX = (rayDirX == 0) ? 1e30 : micro_la_abs(1 / rayDirX);
+    double deltaDistY = (rayDirY == 0) ? 1e30 : micro_la_abs(1 / rayDirY);
 
     double perpWallDist;
     int stepX;

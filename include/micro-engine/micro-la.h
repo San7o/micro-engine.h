@@ -21,6 +21,7 @@
 //   - Vec2
 //   - Vec3
 //   - Vec4
+//   - Matrix
 //   - Rect
 //   - Circle
 //   - Triangle
@@ -30,6 +31,7 @@
 //   - floor
 //   - sqrt
 //   - sin / cos / tan / arcsin / arccos / arctan
+//   - rand
 //   - abs
 //   - quaternions
 //
@@ -57,7 +59,6 @@
 // TODO
 // ----
 //
-//  - TODO: matrices
 //  - TODO: implement quaternion rotations for any axes
 //  - TODO: add rotations to shapes Rect and Triangle
 //  - TODO: add generic poligons with any number of vertices
@@ -82,6 +83,21 @@ extern "C" {
 // the implementation in all the files
 #ifndef MICRO_LA_DEF
   #define MICRO_LA_DEF static inline
+#endif
+
+// Config: assert function
+#ifndef MICRO_LA_ASSERT
+  #include <assert.h>
+  #define MICRO_LA_ASSERT assert
+#endif
+
+// Config: Memory allocation and deallocation
+#ifndef MICRO_LA_MALLOC
+  #include <stdlib.h>
+  #define MICRO_LA_MALLOC malloc
+#endif
+#ifndef MICRO_LA_FREE
+  #define MICRO_LA_FREE free
 #endif
 
 //
@@ -204,7 +220,7 @@ MICRO_LA_DEF Quaternion micro_la_quaternion_rotate(Quaternion p, double angle);
   #define EULER 2.7182818284590452353f
 #endif
 
-static inline float micro_floorf(float x)
+MICRO_LA_DEF float micro_floorf(float x)
 {
   if (x >= 0.0f)
     return (float)((int)x);
@@ -218,7 +234,7 @@ static inline float micro_floorf(float x)
   return f;
 }
 
-static inline float micro_sqrtf(float x)
+MICRO_LA_DEF float micro_sqrtf(float x)
 {
     if (x <= 0) return 0;
 
@@ -246,7 +262,7 @@ static inline float micro_sqrtf(float x)
 // Member N of the polinomial essentially matches derivative of degree
 // N of the non-polinomial function. A Taylor series centered at 0
 // is known as Maclaurin series.
-static inline float micro_sin(float x)
+MICRO_LA_DEF float micro_sin(float x)
 {
   // Fast range reduction for large x, to map x to [-PI, PI]
   x = x - (2.0f * PI) * micro_floorf((x + PI) / (2.0f * PI));
@@ -265,17 +281,17 @@ static inline float micro_sin(float x)
   return sum;
 }
 
-static inline float micro_cos(float x)
+MICRO_LA_DEF float micro_cos(float x)
 {
   return micro_sin(x + 1.57079632f); // x + PI/2
 }
 
-static inline float micro_tan(float x)
+MICRO_LA_DEF float micro_tan(float x)
 {
   return micro_sin(x) / micro_cos(x);
 }
 
-static inline float micro_arctan(float x)
+MICRO_LA_DEF float micro_arctan(float x)
 {
   // 1. Handle range reduction to |x| <= 1
   if (x > 1.0f)  return (PI / 2.0f) - micro_arctan(1.0f / x);
@@ -294,7 +310,7 @@ static inline float micro_arctan(float x)
   return sum;
 }
 
-static inline float micro_arccos(float x)
+MICRO_LA_DEF float micro_arccos(float x)
 {
   // Clamp input to valid range [-1, 1] to avoid NaN
   if (x <= -1.0f) return PI;
@@ -305,7 +321,7 @@ static inline float micro_arccos(float x)
   return 2.0f * micro_arctan(val);
 }
 
-static inline float micro_arcsin(float x)
+MICRO_LA_DEF float micro_arcsin(float x)
 {
   // Clamp to valid domain [-1, 1]
   if (x >= 1.0f) return PI / 2.0f;
@@ -316,9 +332,25 @@ static inline float micro_arcsin(float x)
   return micro_arctan(x / denom);
 }
 
-#ifndef micro_abs
-#define micro_abs(x) ((x) > 0) ? (x) : -(x)
+#ifndef micro_la_abs
+#define micro_la_abs(x) ((x) > 0) ? (x) : -(x)
 #endif
+
+#define MICRO_LA_LCG_MAGIC1 1664525    // a
+#define MICRO_LA_LCG_MAGIC2 1013904223 // c
+#define MICRO_LA_LCG_MAGIC3 (1<<31)    // m
+// LCG pseudo random number generator
+static inline unsigned int micro_la_lcg(const unsigned int seed)
+{
+  return (MICRO_LA_LCG_MAGIC1 * seed + MICRO_LA_LCG_MAGIC2) % MICRO_LA_LCG_MAGIC3;
+}
+
+MICRO_LA_DEF unsigned int micro_la_rand(void)
+{
+  static unsigned int seed = 6969;
+  seed = micro_la_lcg(seed);
+  return seed;
+}
   
 #define Vec2_IMPL(type, suffix)                             \
   MICRO_LA_DEF Vec2##suffix                                 \
@@ -513,6 +545,84 @@ static inline float micro_arcsin(float x)
     return (a.a == b.a && a.b == b.b && a.c == b.c && a.d == b.d);  \
   }
 
+#define MAT_AT(m, row, col) (m).elements[(row) * (m).cols + (col)]
+#define Mat_IMPL(type, suffix)                            \
+  MICRO_LA_DEF Mat##suffix                                \
+  Mat##suffix##_init(unsigned int rows, unsigned int cols)  \
+  {                                                       \
+    return (Mat##suffix) {                                \
+      .rows     = rows,                                   \
+      .cols     = cols,                                   \
+      .elements = MICRO_LA_MALLOC(rows * cols),           \
+    };                                                    \
+  }                                                       \
+                                                          \
+  MICRO_LA_DEF void                                       \
+  Mat##suffix##_free(Mat##suffix *mat)                    \
+  {                                                       \
+    if (!mat || !mat->elements) return;                   \
+    MICRO_LA_FREE(mat->elements);                         \
+    mat->elements = NULL;                                 \
+  }                                                       \
+                                                          \
+  MICRO_LA_DEF void                                       \
+  Mat##suffix##_copy(Mat##suffix *a, Mat##suffix b)       \
+  {                                                       \
+    for (unsigned int row = 0; row < a->rows; ++row)      \
+      for (unsigned int col = 0; col < a->cols; ++col)    \
+        MAT_AT(*a, row, col) = MAT_AT(b, row, col);       \
+  }                                                       \
+                                                          \
+  MICRO_LA_DEF void                                       \
+  Mat##suffix##_add(Mat##suffix *a, Mat##suffix b)        \
+  {                                                       \
+    for (unsigned int row = 0; row < a->rows; ++row)      \
+      for (unsigned int col = 0; col < a->cols; ++col)    \
+        MAT_AT(*a, row, col) += MAT_AT(b, row, col);      \
+  }                                                       \
+                                                          \
+  MICRO_LA_DEF void                                       \
+  Mat##suffix##_sub(Mat##suffix *a, Mat##suffix b)        \
+  {                                                       \
+    for (unsigned int row = 0; row < a->rows; ++row)      \
+      for (unsigned int col = 0; col < a->cols; ++col)    \
+        MAT_AT(*a, row, col) -= MAT_AT(b, row, col);      \
+  }                                                       \
+                                                          \
+  MICRO_LA_DEF void                                       \
+  Mat##suffix##_fill(Mat##suffix *a, type value)          \
+  {                                                       \
+    for (unsigned int row = 0; row < a->rows; ++row)      \
+      for (unsigned int col = 0; col < a->cols; ++col)    \
+        MAT_AT(*a, row, col) = value;                     \
+  }                                                       \
+                                                          \
+  MICRO_LA_DEF void                                       \
+  Mat##suffix##_rand(Mat##suffix *a)                      \
+  {                                                       \
+    for (unsigned int row = 0; row < a->rows; ++row)      \
+      for (unsigned int col = 0; col < a->cols; ++col)    \
+        MAT_AT(*a, row, col) = (type)micro_la_rand();     \
+  }                                                       \
+                                                          \
+  MICRO_LA_DEF void                                       \
+  Mat##suffix##_mul(Mat##suffix *dest, Mat##suffix a, Mat##suffix b)  \
+  {                                                       \
+    MICRO_LA_ASSERT(a.cols == b.rows);                    \
+    MICRO_LA_ASSERT(dst.rows == a.rows);                  \
+    MICRO_LA_ASSERT(dst.cols == b.cols);                  \
+                                                          \
+    for (unsigned int row = 0; row < a.rows; ++row)       \
+      for (unsigned int col = 0; col < a.cols; ++col)     \
+      {                                                   \
+        MAT_AT(*dest, row, col) = 0;                      \
+        for (unsigned int k = 0; k < a.cols; ++k)         \
+          MAT_AT(*dest, row, col) +=                      \
+            MAT_AT(a, row, k) * MAT_AT(b, k, col);        \
+      }                                                   \
+  }           
+
+  
 //
 // C +-----+ B
 //   |     |
@@ -723,7 +833,7 @@ static inline float micro_arcsin(float x)
     type d;                                       \
   } Vec4##suffix;                                 \
   Vec4_IMPL(type, suffix)
-  
+
 #define Rect_DEF(type, suffix)                  \
   typedef struct {                              \
     type a_x; type a_y;                         \
@@ -750,6 +860,15 @@ static inline float micro_arcsin(float x)
   
 #endif // __STDC_VERSION__ >= 201112L // C11
 
+#define Mat_DEF(type, suffix)                   \
+  typedef struct {                              \
+    unsigned int cols;                          \
+    unsigned int rows;                          \
+    type        *elements;                      \
+  } Mat##suffix;                                \
+  Mat_IMPL(type, suffix)
+  
+  
 Vec2_DEF(int, i)
 Vec2_DEF(float, f)
 // Vec2_DEF(unsigned int, u)
@@ -770,6 +889,13 @@ Vec4_DEF(float, f)
 // Vec4_DEF(long long int, l)
 // Vec4_DEF(unsigned long long int, ul)
 // Vec4_DEF(double, d)
+
+Mat_DEF(int, i)
+Mat_DEF(float, f)
+// Mat_DEF(unsigned int, u)
+// Mat_DEF(long long int, l)
+// Mat_DEF(unsigned long long int, ul)
+// Mat_DEF(double, d)
 
 Rect_DEF(int, i)
 Rect_DEF(float, f)
