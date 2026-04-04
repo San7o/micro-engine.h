@@ -5,13 +5,10 @@
 
 #define MICRO_ENGINE_MEMORY_SIZE (20 * 1024 * 1024)
 #include <micro-engine/micro-engine.h>
-
 #define STB_IMAGE_IMPLEMENTATION
 #include <micro-engine/external/stb_image.h>
-
 #define MICRO_APP_MAIN
 #include <micro-engine/micro-app.h>
-
 #define RGFW_PLATFORM_IMPLEMENTATION
 #include <micro-engine/platforms/rgfw_platform.h>
 

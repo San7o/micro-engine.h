@@ -4,12 +4,10 @@
 // Github:  @San7o
 
 #include <micro-engine/micro-engine.h>
+#include <micro-engine/platforms/rgfw_platform.h>
 
 #define MICRO_APP_MAIN
 #include <micro-engine/micro-app.h>
-
-#define RGFW_PLATFORM_IMPLEMENTATION
-#include <micro-engine/platforms/rgfw_platform.h>
 
 MicroDrawCanvas canvas = {0};
 unsigned char red[4]  = {255, 0, 0, 255};
@@ -26,7 +24,7 @@ MicroDrawText fps_text = {
   .y     = 10,
   .scale = 0.3,
 };
-char fps_str[20] = {0};
+char fps_str[50] = {0};
 
 bool micro_app_setup(int argc, char **argv)
 {
@@ -46,7 +44,7 @@ bool micro_app_update(float delta_time)
   if (micro_platform.get_key(MICRO_KEY_ESCAPE))
     return false;
   
-  sprintf(fps_str, "FPS: %.2f", 1.0 / (delta_time / 1000.0));
+  micro_log_format(fps_str, "FPS: %f", 1.0 / (delta_time / 1000.0));
   fps_text.text = &fps_str[0];
     
   return true;

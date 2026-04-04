@@ -4,12 +4,10 @@
 // Github:  @San7o
 
 #include <micro-engine/micro-engine.h>
+#include <micro-engine/platforms/rgfw_platform.h>
 
 #define MICRO_APP_MAIN
 #include <micro-engine/micro-app.h>
-
-#define RGFW_PLATFORM_IMPLEMENTATION
-#include <micro-engine/platforms/rgfw_platform.h>
 
 #define WIDTH  1000
 #define HEIGHT 700

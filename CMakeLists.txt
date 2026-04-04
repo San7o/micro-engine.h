@@ -90,11 +90,27 @@ endif()
 set(MICRO_ENGINE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include)
 set(MICRO_ENGINE_LINK_LIBS -lm -lX11)
 
+add_library(${PROJECT_NAME} STATIC
+    ${PROJECT_SOURCE_DIR}/examples/${PROJECT_NAME}-impl.c)
+target_include_directories(${PROJECT_NAME} PRIVATE
+  ${MICRO_ENGINE_INCLUDE_DIRS})
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+  ${MICRO_ENGINE_DEBUG_DEFINES})
+target_compile_options(${PROJECT_NAME} PRIVATE
+  ${MICRO_ENGINE_COMPILE_OPTIONS})
+target_link_options(${PROJECT_NAME} PRIVATE
+  ${MICRO_ENGINE_LINK_OPTIONS})
+
+add_library(rgfw_platform STATIC
+  ${PROJECT_SOURCE_DIR}/examples/rgfw_platform-impl.c)
+target_include_directories(rgfw_platform PRIVATE
+  ${MICRO_ENGINE_INCLUDE_DIRS})
+target_link_libraries(rgfw_platform Xrandr X11)
+
 function(add_example NAME ADDITIONAL_LINK_LIBS)
   message(STATUS "Added example ${NAME}")
   
   add_executable(${NAME}
-    ${PROJECT_SOURCE_DIR}/examples/${PROJECT_NAME}-impl.c
     ${PROJECT_SOURCE_DIR}/examples/${NAME}.c)
 
   target_include_directories(${NAME} PRIVATE
@@ -102,6 +118,7 @@ function(add_example NAME ADDITIONAL_LINK_LIBS)
   target_compile_definitions(${NAME} PRIVATE
     ${MICRO_ENGINE_DEBUG_DEFINES})
   target_link_libraries(${NAME} PRIVATE
+    micro-engine
     ${MICRO_ENGINE_LINK_LIBS} ${ADDITIONAL_LINK_LIBS})
   target_compile_options(${NAME} PRIVATE
     ${MICRO_ENGINE_COMPILE_OPTIONS})
@@ -131,13 +148,13 @@ if (MICRO_ENGINE_BUILD_EXAMPLES)
   else()
     add_example(sdl3_demo SDL3)
     add_example(fft_visualizer SDL3)
-    add_example(rgfw_demo Xrandr)
+    add_example(rgfw_demo rgfw_platform)
     add_example(load_image Xrandr)
-    add_example(app_example Xrandr)
-    add_example(raycaster Xrandr)
-    add_example(mandelbrot Xrandr)
-    add_example(cosu Xrandr)
-    add_example(bezier_curve Xrandr)
+    add_example(app_example rgfw_platform)
+    add_example(raycaster rgfw_platform)
+    add_example(mandelbrot rgfw_platform)
+    add_example(cosu rgfw_platform)
+    add_example(bezier_curve rgfw_platform)
   endif()
 endif()
 

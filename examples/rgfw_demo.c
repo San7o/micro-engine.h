@@ -4,8 +4,6 @@
 // Github:  @San7o
 
 #include <micro-engine/micro-engine.h>
-
-#define RGFW_PLATFORM_IMPLEMENTATION
 #include <micro-engine/platforms/rgfw_platform.h>
 
 #define WIDTH  800
@@ -50,8 +48,8 @@ int main(void)
     time = micro_platform.get_ticks_ms();
     unsigned long int delta = time - prev_time;
     prev_time = time;
-    char fps_str[20] = {0};
-    sprintf(fps_str, "FPS: %.2f", 1.0 / (delta / 1000.0));
+    char fps_str[50] = {0};
+    micro_log_format(fps_str, "FPS: %f", 1.0 / (delta / 1000.0));
     fps_text.text = &fps_str[0];
     
     micro_draw_clear(&canvas, blue);
