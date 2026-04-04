@@ -208,36 +208,84 @@ extern "C" {
   
 // Config: Memory functions
 #ifndef MICRO_LOG_MALLOC
-  #define MICRO_LOG_MALLOC malloc
+  #ifdef MICRO_HEADERS_MALLOC
+    #define MICRO_LOG_MALLOC MICRO_HEADERS_MALLOC
+  #else
+    #define MICRO_LOG_MALLOC malloc
+  #endif
 #endif
+
 #ifndef MICRO_LOG_FREE
-  #define MICRO_LOG_FREE free
+  #ifdef MICRO_HEADERS_FREE
+    #define MICRO_LOG_FREE MICRO_HEADERS_FREE
+  #else
+    #define MICRO_LOG_FREE free
+  #endif
 #endif
+
 #ifndef MICRO_LOG_REALLOC
-  #define MICRO_LOG_REALLOC realloc
+  #ifdef MICRO_HEADERS_REALLOC
+    #define MICRO_LOG_REALLOC MICRO_HEADERS_REALLOC
+  #else
+    #define MICRO_LOG_REALLOC realloc
+  #endif
 #endif
 
 // I/O operations
+
 #ifndef MICRO_LOG_FOPEN
-  #include <stdio.h>
-  #define MICRO_LOG_FOPEN fopen
-  #define MICRO_FILE_MODE_READ "r"
-  #define MICRO_FILE_MODE_WRITE "w+"
+  #ifdef MICRO_HEADERS_FOPEN
+    #define MICRO_LOG_FOPEN MICRO_HEADERS_FOPEN
+  #else
+    #include <stdio.h>
+    #define MICRO_LOG_FOPEN fopen
+  #endif
+  #ifndef MICRO_FILE_MODE_READ
+    #define MICRO_FILE_MODE_READ "r"
+  #endif
+  #ifndef MICRO_FILE_MODE_WRITE
+    #define MICRO_FILE_MODE_WRITE "w+"
+  #endif
 #endif
+
 #ifndef MICRO_LOG_FCLOSE
-  #define MICRO_LOG_FCLOSE fclose
+  #ifdef MICRO_HEADERS_FCLOSE
+    #define MICRO_LOG_FCLOSE MICRO_HEADERS_FCLOSE
+  #else
+    #define MICRO_LOG_FCLOSE fclose
+  #endif
 #endif
+
 #ifndef MICRO_LOG_FREAD
-  #define MICRO_LOG_FREAD fread
+  #ifdef MICRO_HEADERS_FREAD
+    #define MICRO_LOG_FREAD MICRO_HEADERS_FREAD
+  #else
+    #define MICRO_LOG_FREAD fread
+  #endif
 #endif
+ 
 #ifndef MICRO_LOG_FWRITE
-  #define MICRO_LOG_FWRITE fwrite
+  #ifdef MICRO_HEADERS_FWRITE
+    #define MICRO_LOG_FWRITE MICRO_HEADERS_FWRITE
+  #else
+    #define MICRO_LOG_FWRITE fwrite
+  #endif
 #endif
+
 #ifndef MICRO_LOG_FLUSH
-  #define MICRO_LOG_FLUSH(...) true
+  #ifdef MICRO_HEADERS_FLUSH
+    #define MICRO_LOG_FLUSH MICRO_HEADERS_FLUSH
+  #else
+    #define MICRO_LOG_FLUSH(...) true
+  #endif
 #endif
+
 #ifndef MICRO_LOG_OUT
-  #define MICRO_LOG_OUT printf
+  #ifdef MICRO_HEADERS_OUT
+    #define MICRO_LOG_OUT MICRO_HEADERS_OUT
+  #else
+    #define MICRO_LOG_OUT printf
+  #endif
 #endif
   
 //

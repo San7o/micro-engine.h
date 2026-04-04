@@ -129,7 +129,6 @@ extern "C" {
 
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>
 
 //
 // Configuration
@@ -154,18 +153,27 @@ extern "C" {
 //
 // Note: should behave like calloc(3)
 #ifdef MICRO_TESTS_MULTITHREADED
-#ifndef MICRO_TESTS_CALLOC
-#define MICRO_TESTS_CALLOC calloc
-#endif
+  #ifndef MICRO_TESTS_CALLOC
+    #ifdef MICRO_HEADERS_CALLOC
+      #define MICRO_TESTS_CALLOC MICRO_HEADERS_CALLOC
+    #else
+      #include <stdlib.h>
+      #define MICRO_TESTS_CALLOC calloc
+    #endif
+  #endif
 #endif
 
 // Config: Free allocated memory, used only for multithreaded execution
 //
 // Note: should behave like free(3)
 #ifdef MICRO_TESTS_MULTITHREADED
-#ifndef MICRO_TESTS_FREE
-#define MICRO_TESTS_FREE free
-#endif
+  #ifndef MICRO_TESTS_FREE
+    #ifdef MICRO_HEADERS_FREE
+      #define MICRO_TESTS_FREE MICRO_HEADERS_FREE
+    #else
+      #define MICRO_TESTS_FREE free
+    #endif
+  #endif
 #endif
 
 //

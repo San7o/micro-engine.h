@@ -109,7 +109,7 @@ void cosu_note_list_push_back(CosuNoteList *list,
   if (!list) return;
   
   CosuNoteListElem *new_elem =
-    (CosuNoteListElem*) MICRO_ENGINE_MALLOC(sizeof(CosuNoteListElem));
+    (CosuNoteListElem*) MICRO_HEADERS_MALLOC(sizeof(CosuNoteListElem));
 
   if (!list->tail)
   {
@@ -135,7 +135,7 @@ void cosu_note_list_push_front(CosuNoteList *list,
   if (!list) return;
   
   CosuNoteListElem *new_elem =
-    (CosuNoteListElem*) MICRO_ENGINE_MALLOC(sizeof(CosuNoteListElem));
+    (CosuNoteListElem*) MICRO_HEADERS_MALLOC(sizeof(CosuNoteListElem));
 
   if (!list->head)
   {
@@ -164,7 +164,7 @@ void cosu_note_list_pop_back(CosuNoteList *list)
   {
     assert(list->head == list->tail);
     
-    MICRO_ENGINE_FREE(list->tail);
+    MICRO_HEADERS_FREE(list->tail);
     list->head = NULL;
     list->tail = NULL;
     return;
@@ -173,7 +173,7 @@ void cosu_note_list_pop_back(CosuNoteList *list)
   CosuNoteListElem *tail = list->tail;
   list->tail->prev->next = NULL;
   list->tail = list->tail->prev;
-  MICRO_ENGINE_FREE(tail);
+  MICRO_HEADERS_FREE(tail);
   return;
 }
 
@@ -186,7 +186,7 @@ void cosu_note_list_pop_front(CosuNoteList *list)
   {
     assert(list->head == list->tail);
 
-    MICRO_ENGINE_FREE(list->head);
+    MICRO_HEADERS_FREE(list->head);
     list->head = NULL;
     list->tail = NULL;
     return;
@@ -195,7 +195,7 @@ void cosu_note_list_pop_front(CosuNoteList *list)
   CosuNoteListElem* head = list->head;
   list->head->next->prev = NULL;
   list->head = list->head->next;
-  MICRO_ENGINE_FREE(head);
+  MICRO_HEADERS_FREE(head);
   return;
 }
 
@@ -231,7 +231,7 @@ void cosu_note_list_elem_free(CosuNoteListElem *elem)
   if (!elem) return;
   
   CosuNoteListElem *next = elem->next;
-  MICRO_ENGINE_FREE(elem);
+  MICRO_HEADERS_FREE(elem);
   cosu_note_list_elem_free(next);
   return;
 }

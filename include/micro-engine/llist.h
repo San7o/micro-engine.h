@@ -154,15 +154,23 @@ extern "C" {
 // Config: Define memory allocation function
 // Notes: This is expected to be used like malloc(3)
 #ifndef LLIST_MALLOC
-  #include <stdlib.h>
-  #define LLIST_MALLOC malloc
+  #ifdef MICRO_HEADERS_MALLOC
+    #define LLIST_MALLOC MICRO_HEADERS_MALLOC
+  #else
+    #include <stdlib.h>
+    #define LLIST_MALLOC malloc
+  #endif
 #endif
 
 // Config: Define memory free function
 // Notes: This is expected to be used like free(3)
 #ifndef LLIST_FREE
-  #include <stdlib.h>
-  #define LLIST_FREE free
+  #ifdef MICRO_HEADERS_FREE
+    #define LLIST_FREE MICRO_HEADERS_FREE
+  #else
+    #include <stdlib.h>
+    #define LLIST_FREE free
+  #endif
 #endif
 
 // Config: Prefix for all functions

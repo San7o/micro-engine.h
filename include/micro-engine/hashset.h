@@ -164,14 +164,22 @@ extern "C" {
 // Config: The memory allocator
 // Note: This is expected to be used like calloc(3), zero the memory
 #ifndef HASHSET_CALLOC
-  #include <stdlib.h>
-  #define HASHSET_CALLOC calloc
+  #ifdef MICRO_HEADERS_CALLOC
+    #define HASHSET_CALLOC MICRO_HEADERS_CALLOC
+  #else
+    #include <stdlib.h>
+    #define HASHSET_CALLOC calloc
+  #endif
 #endif
 
 // Config: Function to free the memory
 #ifndef HASHSET_FREE
-  #include <stdlib.h>
-  #define HASHSET_FREE free
+  #ifdef MICRO_HEADERS_FREE
+    #define HASHSET_FREE MICRO_HEADERS_FREE
+  #else
+    #include <stdlib.h>
+    #define HASHSET_FREE free
+  #endif
 #endif
 
 // Config: Prefix for all functions

@@ -130,15 +130,22 @@ extern "C" {
 // Config: Define memory allocation function
 // Notes: This is expected to be used like malloc(3)
 #ifndef MICRO_MODULE_MALLOC
-  #include <stdlib.h>
-  #define MICRO_MODULE_MALLOC malloc
+  #ifdef MICRO_HEADERS_MALLOC
+    #define MICRO_MODEULE_MALLOC MICRO_HEADERS_MALLOC
+  #else
+    #include <stdlib.h>
+    #define MICRO_MODULE_MALLOC malloc
+  #endif
 #endif
 
 // Config: Define memory free function
 // Notes: This is expected to be used like free(3)
 #ifndef MICRO_MODULE_FREE
-  #include <stdlib.h>
-  #define MICRO_MODULE_FREE free
+  #ifdef MICRO_HEADERS_FREE
+    #define MICRO_MODULE_FREE MICRO_HEADERS_FREE
+  #else
+    #define MICRO_MODULE_FREE free
+  #else
 #endif
   
 //

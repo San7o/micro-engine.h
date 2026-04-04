@@ -121,6 +121,16 @@ extern "C" {
 #ifndef MICRO_FLAG_DEF
   #define MICRO_FLAG_DEF extern
 #endif
+
+// Config: formatted output (printf like)
+#ifndef MICRO_FLAG_OUT
+  #ifdef MICRO_HEADERS_OUT
+    #define MICRO_FLAG_OUT MICRO_HEADERS_OUT
+  #else
+    #include <stdio.h>
+    #define MICRO_FLAG_OUT printf
+  #endif
+#endif
   
 //
 // Types
@@ -237,14 +247,14 @@ micro_flag_parse(MicroFlag *flags,
         case MICRO_FLAG_CHAR:
           if (i + 1 >= argc)
           {
-            printf("Usage: %s,%s <char>\n",
+            MICRO_FLAG_OUT("Usage: %s,%s <char>\n",
                    flags[flag].short_name,
                    flags[flag].long_name);
             return MICRO_FLAG_ERROR_MISSING_CHAR;
           }
           if (strlen(argv[i+1]) != 1)
           {
-            printf("Usage: %s,%s <char>\n",
+            MICRO_FLAG_OUT("Usage: %s,%s <char>\n",
                    flags[flag].short_name,
                    flags[flag].long_name);
             return MICRO_FLAG_ERROR_CHAR_WRONG_ARG;
@@ -255,7 +265,7 @@ micro_flag_parse(MicroFlag *flags,
         case MICRO_FLAG_STR:
           if (i + 1 >= argc)
           {
-            printf("Usage: %s,%s <string>\n",
+            MICRO_FLAG_OUT("Usage: %s,%s <string>\n",
                    flags[flag].short_name,
                    flags[flag].long_name);
             return MICRO_FLAG_ERROR_MISSING_STR;
@@ -266,7 +276,7 @@ micro_flag_parse(MicroFlag *flags,
         case MICRO_FLAG_INT:
           if (i + 1 >= argc)
           {
-            printf("Usage: %s,%s <integer>\n",
+            MICRO_FLAG_OUT("Usage: %s,%s <integer>\n",
                    flags[flag].short_name,
                    flags[flag].long_name);
             return MICRO_FLAG_ERROR_MISSING_INT;
@@ -277,7 +287,7 @@ micro_flag_parse(MicroFlag *flags,
           if (endptr == argv[i+1] || errno == ERANGE
               || val_int > INT_MAX || val_int < INT_MIN)
           {
-            printf("Usage: %s,%s <integer>\n",
+            MICRO_FLAG_OUT("Usage: %s,%s <integer>\n",
                    flags[flag].short_name,
                    flags[flag].long_name);
             return MICRO_FLAG_ERROR_NOT_AN_INT;
@@ -288,7 +298,7 @@ micro_flag_parse(MicroFlag *flags,
         case MICRO_FLAG_DOUBLE:
           if (i + 1 >= argc)
           {
-            printf("Usage: %s,%s <double>\n",
+            MICRO_FLAG_OUT("Usage: %s,%s <double>\n",
                    flags[flag].short_name,
                    flags[flag].long_name);
             return MICRO_FLAG_ERROR_MISSING_DOUBLE;
@@ -298,7 +308,7 @@ micro_flag_parse(MicroFlag *flags,
           double val_double = strtod(argv[i+1], &endptr);
           if (endptr == argv[i+1] || errno == ERANGE)
           {
-            printf("Usage: %s,%s <double>\n",
+            MICRO_FLAG_OUT("Usage: %s,%s <double>\n",
                    flags[flag].short_name,
                    flags[flag].long_name);
             return MICRO_FLAG_ERROR_NOT_A_DOUBLE;
@@ -313,7 +323,7 @@ micro_flag_parse(MicroFlag *flags,
     }
     if (!found)
     {
-      printf("Error parsing flags: unknown flag \"%s\"\n", argv[i]);
+      MICRO_FLAG_OUT("Error parsing flags: unknown flag \"%s\"\n", argv[i]);
       return MICRO_FLAG_ERROR_UNKNOWN_FLAG;
     }
   }
@@ -327,16 +337,16 @@ micro_flag_print_help(const char* prog_name,
                       MicroFlag *flags,
                       unsigned int num_flags)
 {
-  printf("%s\n", prog_name);
-  printf("%s\n", description);
-  printf("\n");
-  printf("Options:\n");
+  MICRO_FLAG_OUT("%s\n", prog_name);
+  MICRO_FLAG_OUT("%s\n", description);
+  MICRO_FLAG_OUT("\n");
+  MICRO_FLAG_OUT("Options:\n");
 
   for (unsigned int i = 0; i < num_flags; ++i)
   {
     bool has_short = (flags[i].short_name != NULL);
     bool has_long = (flags[i].long_name != NULL);
-    printf("    %s%s%s %s\n        %s\n",
+    MICRO_FLAG_OUT("    %s%s%s %s\n        %s\n",
            (has_short ? flags[i].short_name : ""),
            (has_long && has_short) ? "," : "",
            (has_long ? flags[i].long_name : ""),
@@ -358,7 +368,6 @@ micro_flag_print_help(const char* prog_name,
 #define MICRO_FLAG_IMPLEMENTATION
 #include "micro-flag.h"
 
-#include <stdio.h>
 #include <stdbool.h>
 
 typedef struct {
@@ -398,9 +407,9 @@ int main(int argc, char** argv)
     return 0;
   }
 
-  printf("Output file: %s\n", args.out_name);
-  printf("A char:      %c\n", args.a_char);
-  printf("A number:    %d\n", args.a_number);
+  MICRO_FLAG_OUT("Output file: %s\n", args.out_name);
+  MICRO_FLAG_OUT("A char:      %c\n", args.a_char);
+  MICRO_FLAG_OUT("A number:    %d\n", args.a_number);
   
   return 0;
 }

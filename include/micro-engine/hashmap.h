@@ -179,15 +179,23 @@ extern "C" {
 // Config: Define memory allocation function
 // Notes: This is expected to be used like calloc(3), and zero the memory
 #ifndef HASHMAP_CALLOC
-  #include <stdlib.h>
-  #define HASHMAP_CALLOC calloc
+  #ifdef MICRO_HEADERS_CALLOC
+    #define HASHMAP_CALLOC MICRO_HEADERS_CALLOC
+  #else
+    #include <stdlib.h>
+    #define HASHMAP_CALLOC calloc
+  #endif
 #endif
 
 // Config: Define memory free function
 // Notes: This is expected to be used like free(3)
 #ifndef HASHMAP_FREE
-  #include <stdlib.h>
-  #define HASHMAP_FREE free
+  #ifdef MICRO_HEADERS_FREE
+    #define HASHMAP_FREE MICRO_HEADERS_FREE
+  #else
+    #include <stdlib.h>
+    #define HASHMAP_FREE free
+  #endif
 #endif
 
 // Config: Prefix for all functions

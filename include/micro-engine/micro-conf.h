@@ -122,6 +122,28 @@ extern "C" {
 #ifndef MICRO_CONF_DEF
   #define MICRO_CONF_DEF extern
 #endif
+
+// Conf: file I/O operations
+#ifndef MICRO_CONF_FOPEN
+  #ifdef MICRO_HEADERS_FOPEN
+    #define MICRO_CONF_FOPEN MICRO_HEADERS_FOPEN
+  #else
+    #define _POSIX_C_SOURCE 200809L
+    #include <stdio.h>
+    #define MICRO_CONF_FOPEN fopen
+  #endif
+  #ifndef MICRO_FILE_MODE_READ
+    #define MICRO_FILE_MODE_READ "r"
+  #endif
+#endif
+
+#ifndef MICRO_CONF_FCLOSE
+  #ifdef MICRO_HEADERS_FCLOSE
+    #define MICRO_CONF_FCLOSE MICRO_HEADERS_FCLOSE
+  #else
+    #define MICRO_CONF_FCLOSE fclose
+  #endif
+#endif 
   
 //
 // Macros
@@ -183,8 +205,6 @@ micro_conf_parse(MicroConf *conf, size_t num_conf, const char *pathname);
   
 #ifdef MICRO_CONF_IMPLEMENTATION
 
-#define _POSIX_C_SOURCE 200809L
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -220,7 +240,7 @@ micro_conf_parse(MicroConf *conf, size_t num_conf, const char *pathname)
 {
   if (!conf) return MICRO_CONF_ERROR_CONF_NULL;
 
-  FILE *file = fopen(pathname, "r");
+  FILE *file = MICRO_CONF_FOPEN(pathname, MICRO_FILE_MODE_READ);
   if (!file) return MICRO_CONF_ERROR_OPENING_FILE;
 
   char *line = NULL;
@@ -271,7 +291,7 @@ micro_conf_parse(MicroConf *conf, size_t num_conf, const char *pathname)
         else
         {
           free(line);
-          fclose(file);
+          MICRO_CONF_FCLOSE(file);
           return MICRO_CONF_ERROR_INVALID_BOOL;
         }
         break;
@@ -285,7 +305,7 @@ micro_conf_parse(MicroConf *conf, size_t num_conf, const char *pathname)
         else
         {
           free(line);
-          fclose(file);
+          MICRO_CONF_FCLOSE(file);
           return MICRO_CONF_ERROR_INVALID_CHAR;
         }
         break;
@@ -302,7 +322,7 @@ micro_conf_parse(MicroConf *conf, size_t num_conf, const char *pathname)
         if (*endptr != '\0')
         {
           free(line);
-          fclose(file);
+          MICRO_CONF_FCLOSE(file);
           return MICRO_CONF_ERROR_INVALID_INT;
         }
         *((int*)conf[i].value) = (int)val;
@@ -315,7 +335,7 @@ micro_conf_parse(MicroConf *conf, size_t num_conf, const char *pathname)
         if (*endptr != '\0')
         {
           free(line);
-          fclose(file);
+          MICRO_CONF_FCLOSE(file);
           return MICRO_CONF_ERROR_INVALID_DOUBLE;
         }
         *((double*)conf[i].value) = val;
@@ -328,7 +348,7 @@ micro_conf_parse(MicroConf *conf, size_t num_conf, const char *pathname)
         if (*endptr != '\0')
         {
           free(line);
-          fclose(file);
+          MICRO_CONF_FCLOSE(file);
           return MICRO_CONF_ERROR_INVALID_FLOAT;
         }
         *((float*)conf[i].value) = val;
@@ -336,7 +356,7 @@ micro_conf_parse(MicroConf *conf, size_t num_conf, const char *pathname)
       }
       default:
         free(line);
-        fclose(file);
+        MICFO_CONF_FCLOSE(file);
         return MICRO_CONF_ERROR_UNKNOWN_TYPE;
       }
 
@@ -345,7 +365,7 @@ micro_conf_parse(MicroConf *conf, size_t num_conf, const char *pathname)
   }
 
   free(line);
-  if (fclose(file) != 0) return MICRO_CONF_ERROR_CLOSING_FILE;
+  if (MICRO_CONF_FCLOSE(file) != 0) return MICRO_CONF_ERROR_CLOSING_FILE;
   return MICRO_CONF_OK;
 }
   

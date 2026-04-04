@@ -103,31 +103,70 @@ extern "C" {
 #endif
 
 // I/O operations
+
 #ifndef MICRO_DRAW_FOPEN
-  #include <stdio.h>
-  #define MICRO_DRAW_FOPEN fopen
-  #define MICRO_FILE_MODE_READ "r"
-  #define MICRO_FILE_MODE_WRITE "w+"
+  #ifdef MICRO_HEADERS_FOPEN
+    #define MICRO_DRAW_FOPEN MICRO_HEADERS_FOPEN
+  #else
+    #include <stdio.h>
+    #define MICRO_DRAW_FOPEN fopen
+  #endif
+  #ifndef MICRO_FILE_MODE_READ
+    #define MICRO_FILE_MODE_READ "r"
+  #endif
+  #ifndef MICRO_FILE_MODE_WRITE
+    #define MICRO_FILE_MODE_WRITE "w+"
+  #endif
 #endif
+
 #ifndef MICRO_DRAW_FCLOSE
-  #define MICRO_DRAW_FCLOSE fclose
+  #ifdef MICRO_HEADERS_FCLOSE
+    #define MICRO_DRAW_FCLOSE MICRO_HEADERS_FCLOSE
+  #else
+    #define MICRO_DRAW_FCLOSE fclose
+  #endif
 #endif
+
 #ifndef MICRO_DRAW_FREAD
-  #define MICRO_DRAW_FREAD fread
+  #ifdef MICRO_HEADERS_FREAD
+    #define MICRO_DRAW_FREAD MICRO_HEADERS_FREAD
+  #else
+    #define MICRO_DRAW_FREAD fread
+  #endif
 #endif
+
 #ifndef MICRO_DRAW_FWRITE
-  #define MICRO_DRAW_FWRITE fwrite
+  #ifdef MICRO_HEADERS_FWRITE
+    #define MICRO_DRAW_FWRITE MICRO_HEADERS_FWRITE
+  #else
+    #define MICRO_DRAW_FWRITE fwrite
+  #endif
 #endif
+
 #ifndef MICRO_DRAW_OUT
-  #define MICRO_DRAW_OUT printf
+  #ifdef MICRO_HEADERS_OUT
+    #define MICRO_DRAW_OUT MICRO_HEADERS_OUT
+  #else
+    #define MICRO_DRAW_OUT printf
+  #endif
 #endif
 
 // Memory operations
+
 #ifndef MICRO_DRAW_MALLOC
+  #ifdef MICRO_HEADERS_MALLOC
+    #define MICRO_DRAW_MALLOC MICRO_HEADERS_MALLOC
+  #else
   #define MICRO_DRAW_MALLOC malloc
+  #endif
 #endif
+
 #ifndef MICRO_DRAW_FREE
-  #define MICRO_DRAW_FREE free
+  #ifdef MICRO_HEADERS_FREE
+    #define MICRO_DRAW_FREE MICRO_HEADERS_FREE
+  #else
+    #define MICRO_DRAW_FREE free
+  #endif
 #endif
   
 //
