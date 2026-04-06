@@ -415,9 +415,32 @@ MICRO_LA_DEF unsigned int micro_la_rand(void)
   Vec2##suffix##_eq(Vec2##suffix a, Vec2##suffix b)         \
   {                                                         \
     return (a.x == b.x && a.y == b.y);                      \
+  }                                                         \
+                                                            \
+  MICRO_LA_DEF float                                        \
+  Vec2##suffix##_length(Vec2##suffix a)                     \
+  {                                                         \
+    return micro_sqrtf(a.x * a.x + a.y*a.y);                \
   }
-  
-  
+
+// Note on the dot product: is an operation that takes two vectors and
+// returns a scalar, for this reason it is also called the scalar
+// product. Geometrically it can be interpreted as projecting one
+// vector onto the other, and returning the length of the
+// projection. For this reason, you can use it to calculate the angle
+// between two vectors.
+//
+//     dot(a, b) = length(a) * length(b) * cos(angle)
+//
+// Note on the cross product: it is an operation that returns another
+// vector that is perpendicular to a and b. In 2D, it represents the
+// area of the parallelogram with a and b as sides. It is defined as
+// a determinant of the matrix:
+//
+//    cross(a, b)  = det([[i,   j,  k],
+//                        [ax, ay, az]
+//                        [bx, by, bz])
+//
 #define Vec3_IMPL(type, suffix)                             \
   MICRO_LA_DEF Vec3##suffix                                 \
   Vec3##suffix##_scale(Vec3##suffix vec,                    \
@@ -490,7 +513,14 @@ MICRO_LA_DEF unsigned int micro_la_rand(void)
   Vec3##suffix##_eq(Vec3##suffix a, Vec3##suffix b)         \
   {                                                         \
     return (a.x == b.x && a.y == b.y && a.z == b.z);        \
+  }                                                         \
+                                                            \
+  MICRO_LA_DEF float                                        \
+  Vec3##suffix##_length(Vec3##suffix a)                     \
+  {                                                         \
+    return micro_sqrtf(a.x * a.x + a.y*a.y + a.z * a.z);    \
   }
+  
   
 #define Vec4_IMPL(type, suffix)                             \
   MICRO_LA_DEF Vec4##suffix                                 \
@@ -543,7 +573,14 @@ MICRO_LA_DEF unsigned int micro_la_rand(void)
   Vec4##suffix##_eq(Vec4##suffix a, Vec4##suffix b)         \
   {                                                         \
     return (a.a == b.a && a.b == b.b && a.c == b.c && a.d == b.d);  \
+  }                                                                 \
+                                                            \
+  MICRO_LA_DEF float                                        \
+  Vec4##suffix##_length(Vec4##suffix a)                     \
+  {                                                         \
+    return micro_sqrtf(a.a * a.a + a.b*a.b + a.c * a.c + a.d * a.d);  \
   }
+  
 
 #define MAT_AT(m, row, col) (m).elements[(row) * (m).cols + (col)]
 #define Mat_IMPL(type, suffix)                            \
